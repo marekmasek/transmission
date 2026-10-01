@@ -24,6 +24,7 @@
 #include "FilterBarComboBox.h"
 #include "FilterBarComboBoxDelegate.h"
 #include "Filters.h"
+#include "FluentIcon.h"
 #include "IconCache.h"
 #include "NativeIcon.h"
 #include "Prefs.h"
@@ -38,7 +39,8 @@
 enum
 {
     ACTIVITY_ROLE = FilterBarComboBox::UserRole,
-    TRACKER_ROLE
+    TRACKER_ROLE,
+    ICON_TYPE_ROLE
 };
 
 /***
@@ -64,6 +66,10 @@ FilterBarComboBox* FilterBar::createActivityCombo()
     {
         auto* new_row = type ? new QStandardItem{ icons::icon(*type), label } : new QStandardItem{ label };
         new_row->setData(QVariant::fromValue(show_mode), ACTIVITY_ROLE);
+        if (type)
+        {
+            new_row->setData(static_cast<int>(*type), ICON_TYPE_ROLE);
+        }
         model->appendRow(new_row);
     };
     add_row(ShowMode::ShowActive, tr("Active"), icons::Type::TorrentStateActive);
@@ -275,9 +281,10 @@ namespace
 class SidebarDelegate : public QStyledItemDelegate
 {
 public:
-    SidebarDelegate(QString first_row_label, QObject* parent)
+    SidebarDelegate(QString first_row_label, QIcon fallback_icon, QObject* parent)
         : QStyledItemDelegate{ parent }
         , first_row_label_{ std::move(first_row_label) }
+        , fallback_icon_{ std::move(fallback_icon) }
     {
     }
 
@@ -301,8 +308,12 @@ public:
             Qt::AlignLeft | Qt::AlignVCenter,
             QSize{ icon_size, icon_size },
             rect);
-        Utils::getIconFromIndex(index)
-            .paint(painter, icon_rect, Qt::AlignCenter, StyleHelper::getIconMode(option.state), QIcon::Off);
+        auto icon = Utils::getIconFromIndex(index);
+        if (icon.isNull())
+        {
+            icon = fallback_icon_;
+        }
+        icon.paint(painter, icon_rect, Qt::AlignCenter, StyleHelper::getIconMode(option.state), QIcon::Off);
         Utils::narrowRect(rect, icon_size + 12, 0, option.direction);
 
         auto const count = index.data(FilterBarComboBox::CountStringRole).toString();
@@ -330,15 +341,16 @@ public:
 
 private:
     QString const first_row_label_;
+    QIcon const fallback_icon_;
 };
 
 // A sidebar list that mirrors one of the filter bar's combo boxes:
 // both share the combo's model and selecting in one selects in the other.
-QListView* createSidebarList(QComboBox* combo, QString const& first_row_label, QWidget* parent)
+QListView* createSidebarList(QComboBox* combo, QString const& first_row_label, QIcon const& fallback_icon, QWidget* parent)
 {
     auto* const list = new QListView{ parent };
     list->setModel(combo->model());
-    list->setItemDelegate(new SidebarDelegate{ first_row_label, list });
+    list->setItemDelegate(new SidebarDelegate{ first_row_label, fallback_icon, list });
     list->setFrameShape(QFrame::NoFrame);
     list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -393,8 +405,13 @@ QWidget* FilterBar::createSidebar(QWidget* parent)
     layout->setContentsMargins(4, 0, 4, 4);
     layout->setSpacing(0);
 
-    auto* const status_list = createSidebarList(activity_combo_, {}, sidebar);
-    auto* const tracker_list = createSidebarList(tracker_combo_, tr("All trackers"), sidebar);
+    // the sidebar only exists in the Modern theme, so it uses that theme's icons directly
+    auto* const status_list = createSidebarList(activity_combo_, {}, fluent::icon(QStringLiteral("list")), sidebar);
+    auto* const tracker_list = createSidebarList(
+        tracker_combo_,
+        tr("All trackers"),
+        fluent::icon(QStringLiteral("globe")),
+        sidebar);
 
     // the status list never scrolls; the tracker list takes the remaining height
     auto const fit_status_list = [status_list]()
@@ -420,6 +437,19 @@ QWidget* FilterBar::createSidebar(QWidget* parent)
     sidebar->setMinimumWidth(180);
     sidebar->setMaximumWidth(230);
     return sidebar;
+}
+
+void FilterBar::refreshIcons()
+{
+    auto* const model = activity_combo_->model();
+    for (int row = 0; row < model->rowCount(); ++row)
+    {
+        auto const index = model->index(row, 0);
+        if (auto const type = index.data(ICON_TYPE_ROLE); type.isValid())
+        {
+            model->setData(index, icons::icon(static_cast<icons::Type>(type.toInt())), Qt::DecorationRole);
+        }
+    }
 }
 
 void FilterBar::focusSearch()

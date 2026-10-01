@@ -35,6 +35,9 @@
 #include <optional>
 #include <utility>
 
+#include "FluentIcon.h"
+#include "Theme.h"
+
 /***
 ****
 ***/
@@ -46,8 +49,24 @@ IconCache& IconCache::get()
     return singleton;
 }
 
+QIcon IconCache::folderIcon() const
+{
+    return Theme::isModern() ? fluent::mimeTypeIcon({}, true) : folder_icon_;
+}
+
+QIcon IconCache::fileIcon() const
+{
+    return Theme::isModern() ? fluent::mimeTypeIcon({}, false) : file_icon_;
+}
+
 QIcon IconCache::guessMimeIcon(QString const& filename, QIcon fallback) const
 {
+    if (Theme::isModern())
+    {
+        static auto const MimeDb = QMimeDatabase{};
+        return fluent::mimeTypeIcon(MimeDb.mimeTypeForFile(filename, QMimeDatabase::MatchExtension).name(), false);
+    }
+
     QIcon icon;
 
 #ifdef _WIN32
@@ -77,6 +96,11 @@ QIcon IconCache::guessMimeIcon(QString const& filename, QIcon fallback) const
 
 QIcon IconCache::getMimeTypeIcon(QString const& mime_type_name, bool multifile) const
 {
+    if (Theme::isModern())
+    {
+        return fluent::mimeTypeIcon(mime_type_name, multifile);
+    }
+
     auto& icon = (multifile ? name_to_emblem_icon_ : name_to_icon_)[mime_type_name];
 
     if (!icon.isNull())

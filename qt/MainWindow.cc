@@ -33,6 +33,7 @@
 #include "Application.h"
 #include "DetailsDialog.h"
 #include "FilterBar.h"
+#include "FluentIcon.h"
 #include "Filters.h"
 #include "Formatter.h"
 #include "MainWindow.h"
@@ -945,6 +946,32 @@ void MainWindow::refreshIcons()
     pixmap_network_transmit_ = network_pixmap(icons::Type::NetworkTransmit);
     pixmap_network_transmit_receive_ = network_pixmap(icons::Type::NetworkTransmitReceive);
     pixmap_network_error_ = network_pixmap(icons::Type::NetworkError);
+
+    if (filter_bar_ != nullptr)
+    {
+        filter_bar_->refreshIcons();
+    }
+
+    // status bar and menu buttons
+    auto const modern = Theme::isModern();
+    auto const menu_icon = modern ? fluent::icon(QStringLiteral("navigation")) :
+                                    QIcon{ QStringLiteral(":/icons/hamburger-menu.svg") };
+    ui_.optionsButton->setIcon(menu_icon);
+    app_menu_button_->setIcon(menu_icon);
+    ui_.statsModeButton->setIcon(
+        modern ? fluent::icon(QStringLiteral("data_pie")) : QIcon{ QStringLiteral(":/icons/ratio.svg") });
+
+    if (modern)
+    {
+        ui_.altSpeedButton->setIcon(
+            fluent::toggleIcon(QStringLiteral("animal_turtle"), QStringLiteral("animal_turtle_filled")));
+    }
+    else
+    {
+        auto turtle = QIcon{ QStringLiteral(":/icons/alt-limit-off.svg") };
+        turtle.addFile(QStringLiteral(":/icons/alt-limit-on.svg"), {}, QIcon::Normal, QIcon::On);
+        ui_.altSpeedButton->setIcon(turtle);
+    }
 }
 
 /**
@@ -1750,11 +1777,11 @@ void MainWindow::initAppMenu()
     app_menu_button_ = new QToolButton{ ui_.toolBar };
     app_menu_button_->setText(tr("Menu"));
     app_menu_button_->setToolTip(tr("Menu (F10)"));
-    app_menu_button_->setIcon(QIcon{ QStringLiteral(":/icons/hamburger-menu.svg") });
     app_menu_button_->setMenu(menu);
     app_menu_button_->setPopupMode(QToolButton::InstantPopup);
     app_menu_button_->setToolButtonStyle(Qt::ToolButtonFollowStyle);
-    app_menu_action_ = ui_.toolBar->addWidget(app_menu_button_);
+    // the menu follows the last command; the search box ends the bar on the right
+    app_menu_action_ = ui_.toolBar->insertWidget(app_menu_spacer_action_, app_menu_button_);
 
     auto* const shortcut = new QShortcut{ QKeySequence{ Qt::Key_F10 }, this };
     connect(
@@ -1822,7 +1849,7 @@ void MainWindow::refreshChrome()
     filter_bar_->setVisible(!modern && show_filters);
     sidebar_->setVisible(modern && show_filters);
     search_action_->setVisible(modern);
-    app_menu_spacer_action_->setVisible(use_app_menu || modern);
+    app_menu_spacer_action_->setVisible(modern);
     filter_bar_->refreshSidebarMetrics();
 
     for (auto* const action : theme_actions_)

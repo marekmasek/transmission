@@ -43,6 +43,9 @@ public:
 
     void focusSearch();
 
+    // reloads the status icons after a theme change
+    void refreshIcons();
+
     // call when the theme changes the sidebar's row heights
     void refreshSidebarMetrics()
     {

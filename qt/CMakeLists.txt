@@ -43,6 +43,8 @@ target_sources(${TR_NAME}-qt-lib
         Filters.h
         Formatter.cc
         Formatter.h
+        FluentIcon.cc
+        FluentIcon.h
         FreeSpaceLabel.cc
         FreeSpaceLabel.h
         IconCache.cc

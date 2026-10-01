@@ -24,6 +24,7 @@
 #include <QScroller>
 #include <QStyleFactory>
 #include <QStyleOptionMenuItem>
+#include <QStyleOptionToolButton>
 #include <QStyleOptionViewItem>
 #include <QTapAndHoldGesture>
 #include <QWidget>
@@ -347,6 +348,20 @@ InputHelper& inputHelper()
 
 // ---
 
+QIcon tinted(QIcon const& icon, QSize const& size, qreal dpr, QColor const& color)
+{
+    auto image = icon.pixmap(size * dpr).toImage().convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    {
+        auto painter = QPainter{ &image };
+        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.fillRect(image.rect(), color);
+    }
+
+    auto pixmap = QPixmap::fromImage(std::move(image));
+    pixmap.setDevicePixelRatio(dpr);
+    return QIcon{ pixmap };
+}
+
 class AppStyle : public QProxyStyle
 {
 public:
@@ -455,6 +470,23 @@ public:
         }
 
         return QProxyStyle::styleHint(hint, option, widget, return_data);
+    }
+
+    void drawControl(ControlElement element, QStyleOption const* option, QPainter* painter, QWidget const* widget)
+        const override
+    {
+        // the primary command bar button draws its icon in the text color on the accent fill
+        if (auto const* const button = qstyleoption_cast<QStyleOptionToolButton const*>(option); button != nullptr &&
+            element == CE_ToolButtonLabel && state().modern && widget != nullptr &&
+            widget->objectName() == QStringLiteral("primaryAction") && !button->icon.isNull())
+        {
+            auto copy = *button;
+            copy.icon = tinted(button->icon, button->iconSize, widget->devicePixelRatioF(), scheme().on_accent);
+            QProxyStyle::drawControl(element, &copy, painter, widget);
+            return;
+        }
+
+        QProxyStyle::drawControl(element, option, painter, widget);
     }
 
     void polish(QWidget* widget) override
