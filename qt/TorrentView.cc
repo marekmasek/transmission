@@ -192,7 +192,7 @@ private:
         auto const dy = reversed_ ? Size / 4 : -Size / 4;
         auto path = QPainterPath{};
         path.moveTo(x, y - dy);
-        path.lineTo(x + Size / 2, y + dy);
+        path.lineTo(x + (Size / 2), y + dy);
         path.lineTo(x + Size, y - dy);
 
         painter.setPen(QPen{ color, 1.3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin });

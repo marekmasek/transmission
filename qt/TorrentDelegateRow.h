@@ -38,7 +38,7 @@ public:
         int width;
     };
 
-    TorrentDelegateRow(bool compact, QObject* parent = nullptr);
+    explicit TorrentDelegateRow(bool compact, QObject* parent = nullptr);
     ~TorrentDelegateRow() override = default;
     TorrentDelegateRow(TorrentDelegateRow&&) = delete;
     TorrentDelegateRow(TorrentDelegateRow const&) = delete;

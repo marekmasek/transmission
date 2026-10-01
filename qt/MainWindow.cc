@@ -1807,8 +1807,11 @@ void MainWindow::initAppMenu()
 void MainWindow::refreshListDelegate()
 {
     auto const compact = prefs_.get<bool>(TR_KEY_compact_view);
-    auto* const delegate = Theme::isModern() ? (compact ? torrent_delegate_row_compact_ : torrent_delegate_row_) :
-                                               (compact ? torrent_delegate_min_ : torrent_delegate_);
+    QAbstractItemDelegate* delegate = compact ? torrent_delegate_min_ : torrent_delegate_;
+    if (Theme::isModern())
+    {
+        delegate = compact ? torrent_delegate_row_compact_ : torrent_delegate_row_;
+    }
 
     if (ui_.listView->itemDelegate() != delegate)
     {

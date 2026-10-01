@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include <QBrush>
@@ -36,7 +37,7 @@ public:
         QString label;
     };
 
-    enum class Bar
+    enum class Bar : uint8_t
     {
         Downloading,
         Seeding,

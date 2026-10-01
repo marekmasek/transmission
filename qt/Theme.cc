@@ -290,12 +290,22 @@ protected:
             break;
 
         case QEvent::MouseButtonPress:
-            last_press_was_touch_ = !isRealMouse(static_cast<QMouseEvent const*>(event));
+            if (auto const* const mouse_event = dynamic_cast<QMouseEvent const*>(event); mouse_event != nullptr)
+            {
+                last_press_was_touch_ = !isRealMouse(mouse_event);
+            }
             break;
 
 #if QT_CONFIG(gestures)
         case QEvent::Gesture:
-            return onGesture(static_cast<QWidget*>(object), static_cast<QGestureEvent*>(event));
+            if (auto* const viewport = qobject_cast<QWidget*>(object); viewport != nullptr)
+            {
+                if (auto* const gesture_event = dynamic_cast<QGestureEvent*>(event); gesture_event != nullptr)
+                {
+                    return onGesture(viewport, gesture_event);
+                }
+            }
+            break;
 #endif
 
         default:
@@ -322,7 +332,7 @@ private:
     // Press-and-hold with a finger opens the context menu, as right-click does.
     bool onGesture(QWidget* viewport, QGestureEvent* event) const
     {
-        auto* const gesture = static_cast<QTapAndHoldGesture*>(event->gesture(Qt::TapAndHoldGesture));
+        auto* const gesture = qobject_cast<QTapAndHoldGesture*>(event->gesture(Qt::TapAndHoldGesture));
         if (gesture == nullptr || gesture->state() != Qt::GestureFinished || !last_press_was_touch_)
         {
             return false;
@@ -360,8 +370,8 @@ private:
 
 InputHelper& inputHelper()
 {
-    static auto* const instance = new InputHelper{ qApp };
-    return *instance;
+    static auto* const Instance = new InputHelper{ qApp };
+    return *Instance;
 }
 
 // ---
@@ -585,7 +595,7 @@ QString makeStyleSheet()
         { "scroll", qssColor(s.scroll) },
         { "track", qssColor(s.track) },
         { "pad_s", QString::number(touch ? 8 : 4) },
-        { "ctl_h", QString::number(touch ? TouchControlHeight - 2 * 9 : 22) },
+        { "ctl_h", QString::number(touch ? TouchControlHeight - (2 * 9) : 22) },
         { "radius_l", QString::number(8) },
         { "radius", QString::number(touch ? 6 : 4) },
         { "menu_pad", QString::number(touch ? 11 : 5) },
@@ -596,7 +606,7 @@ QString makeStyleSheet()
         { "ind", QString::number(touch ? TouchIndicatorSize : 18) },
         { "spin_w", QString::number(touch ? 32 : 22) },
         { "item_pad", QString::number(touch ? 9 : 3) },
-        { "tab_h", QString::number(touch ? TouchControlHeight - 2 * 9 : 18) },
+        { "tab_h", QString::number(touch ? TouchControlHeight - (2 * 9) : 18) },
     };
 
     for (auto const& [name, value] : tokens)
@@ -700,10 +710,10 @@ QFont makeFont()
 std::vector<Theme::Choice> Theme::choices()
 {
     auto ret = std::vector<Choice>{
-        { QStringLiteral("modern"), tr("Modern (follow system)") },
-        { QStringLiteral("modern_light"), tr("Modern Light") },
-        { QStringLiteral("modern_dark"), tr("Modern Dark") },
-        { QStringLiteral("native"), tr("System default") },
+        { .id = QStringLiteral("modern"), .label = tr("Modern (follow system)") },
+        { .id = QStringLiteral("modern_light"), .label = tr("Modern Light") },
+        { .id = QStringLiteral("modern_dark"), .label = tr("Modern Dark") },
+        { .id = QStringLiteral("native"), .label = tr("System default") },
     };
 
     for (auto const& key : QStyleFactory::keys())
@@ -763,8 +773,11 @@ void Theme::apply(QString const& id, bool touch_mode)
         base = QStyleFactory::create(st.native_style_key);
     }
 
+    // QApplication owns the style
+    // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
     QApplication::setStyle(new AppStyle{ base });
     QApplication::setPalette(st.modern ? makeModernPalette() : makeNativePalette());
+    // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
     QApplication::setFont(makeFont());
     qApp->setStyleSheet(st.modern ? makeStyleSheet() : QString{});
 
@@ -833,7 +846,7 @@ void Theme::drawItemBackground(QPainter& painter, QStyleOptionViewItem const& op
     if (selected)
     {
         auto const pill_height = std::min(16.0, rect.height() - 12.0);
-        auto const pill = QRectF{ rect.left(), rect.center().y() - pill_height / 2, 3.0, pill_height };
+        auto const pill = QRectF{ rect.left(), rect.center().y() - (pill_height / 2), 3.0, pill_height };
         painter.setBrush(s.accent);
         painter.drawRoundedRect(pill, 1.5, 1.5);
     }

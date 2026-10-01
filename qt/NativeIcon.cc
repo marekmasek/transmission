@@ -442,7 +442,6 @@ struct Info
         .ok_in_gnome_menus = ok_in_gnome_menus,
     };
 }
-} // namespace
 
 [[nodiscard]] QString fluentName(Type const type)
 {
@@ -532,6 +531,7 @@ struct Info
 
     return QStringLiteral("document");
 }
+} // namespace
 
 QIcon icon(Type const type, QStyle const* const style)
 {

@@ -26,7 +26,7 @@ public:
         : path_{ std::move(path) }
         , on_path_{ std::move(on_path) }
         , role_{ role }
-        , color_{ std::move(color) }
+        , color_{ color }
     {
     }
 

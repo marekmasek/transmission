@@ -99,7 +99,7 @@ std::vector<TorrentDelegateRow::Cell> TorrentDelegateRow::layoutColumns(int widt
     }
 
     auto cells = std::vector<Cell>{};
-    auto const name_width = std::max(width - 2 * PadX - fixed_width(), 0);
+    auto const name_width = std::max(width - (2 * PadX) - fixed_width(), 0);
     cells.push_back({ .column = Column::Name, .left = PadX, .width = name_width });
 
     auto left = PadX + name_width + Gap;
@@ -184,7 +184,7 @@ QSize TorrentDelegateRow::sizeHint(QStyleOptionViewItem const& option, Torrent c
     }
     else
     {
-        height = std::max(touch ? 64 : 52, line_height * 2 + 18);
+        height = std::max(touch ? 64 : 52, (line_height * 2) + 18);
     }
 
     return { option.rect.width(), height };
@@ -268,7 +268,11 @@ void TorrentDelegateRow::drawName(QPainter* painter, QStyleOptionViewItem const&
     const
 {
     auto const dimmed = tor.isPaused() || (option.state & QStyle::State_Enabled) == 0;
-    auto const icon_size = compact_ ? (Theme::isTouch() ? 20 : 16) : (Theme::isTouch() ? 28 : 24);
+    auto icon_size = Theme::isTouch() ? 28 : 24;
+    if (compact_)
+    {
+        icon_size = Theme::isTouch() ? 20 : 16;
+    }
     auto const icon_mode = dimmed ? QIcon::Disabled : QIcon::Normal;
     auto const icon_state = tor.isPaused() ? QIcon::Off : QIcon::On;
 
@@ -330,7 +334,7 @@ void TorrentDelegateRow::drawName(QPainter* painter, QStyleOptionViewItem const&
 
     auto const name_height = QFontMetrics{ name_font }.height();
     auto const detail_height = QFontMetrics{ detail_font }.height();
-    auto const top = text_rect.top() + (text_rect.height() - name_height - detail_height - 2) / 2;
+    auto const top = text_rect.top() + ((text_rect.height() - name_height - detail_height - 2) / 2);
 
     auto const name_rect = QRect{ text_rect.left(), top, text_rect.width(), name_height };
     auto const detail_rect = QRect{ text_rect.left(), top + name_height + 2, text_rect.width(), detail_height };
@@ -362,7 +366,7 @@ void TorrentDelegateRow::drawProgress(
     auto const fraction = std::clamp(progressFraction(tor), 0.0, 1.0);
 
     auto bar_logical = QRectF{ static_cast<double>(rect.left()),
-                               rect.center().y() - bar_height / 2 + 1,
+                               rect.center().y() - (bar_height / 2) + 1,
                                static_cast<double>(rect.width() - PercentWidth - 8),
                                bar_height };
     auto const bar_rect = QStyle::visualRect(option.direction, rect, bar_logical.toRect());
