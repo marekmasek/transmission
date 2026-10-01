@@ -676,7 +676,7 @@ private:
     QString tracker_list_;
 
     // mutable because it's a lazy lookup
-    mutable QIcon icon_ = IconCache::get().fileIcon();
+    mutable QIcon icon_;
 
     PeerList peers_;
     FileList files_;

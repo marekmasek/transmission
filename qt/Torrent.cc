@@ -16,6 +16,7 @@
 #include "Application.h"
 #include "IconCache.h"
 #include "Prefs.h"
+#include "Theme.h"
 #include "Torrent.h"
 #include "Utils.h"
 #include "VariantHelpers.h"
@@ -149,6 +150,12 @@ std::strong_ordering Torrent::compareETA(Torrent const& that) const
 
 QIcon Torrent::getMimeTypeIcon() const
 {
+    // the Modern theme's icons are cheap and follow theme switches, so skip the cache
+    if (Theme::isModern())
+    {
+        return IconCache::get().getMimeTypeIcon(primary_mime_type_, file_count_ > 1);
+    }
+
     if (icon_.isNull())
     {
         icon_ = IconCache::get().getMimeTypeIcon(primary_mime_type_, file_count_ > 1);

@@ -49,6 +49,27 @@ bool InteropHelper::addMetainfo(QString const& metainfo) const
 #endif
 }
 
+bool InteropHelper::presentWindow() const
+{
+#if defined(ENABLE_DBUS_INTEROP) && defined(ENABLE_COM_INTEROP)
+
+    return dbus_client_.presentWindow().toBool() || com_client_.presentWindow().toBool();
+
+#elif defined(ENABLE_DBUS_INTEROP)
+
+    return dbus_client_.presentWindow().toBool();
+
+#elif defined(ENABLE_COM_INTEROP)
+
+    return com_client_.presentWindow().toBool();
+
+#else
+
+    return false;
+
+#endif
+}
+
 void InteropHelper::initialize()
 {
 #ifdef ENABLE_COM_INTEROP

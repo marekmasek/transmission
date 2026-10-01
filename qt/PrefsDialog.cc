@@ -31,6 +31,7 @@
 #include "FreeSpaceLabel.h"
 #include "Prefs.h"
 #include "Session.h"
+#include "Theme.h"
 #include "UserMetaType.h"
 #include "Utils.h"
 
@@ -104,6 +105,29 @@ void PrefsDialog::initAltSpeedDaysCombo(QComboBox* const w, tr_quark const key)
     }();
 
     initComboFromItems(items, w, key);
+}
+
+void PrefsDialog::initThemeCombo(QComboBox* const w, tr_quark const key)
+{
+    auto const choices = Theme::choices();
+    for (auto const& choice : choices)
+    {
+        w->addItem(choice.label, choice.id);
+    }
+
+    auto updater = [this, key, w]()
+    {
+        auto const blocker = QSignalBlocker{ w };
+        w->setCurrentIndex(std::max(w->findData(prefs_.get<QString>(key)), 0));
+    };
+    updater();
+    updaters_.emplace(key, std::move(updater));
+
+    connect(
+        w,
+        qOverload<int>(&QComboBox::activated),
+        this,
+        [this, key, w](int const idx) { set(key, w->itemData(idx).toString()); });
 }
 
 void PrefsDialog::initEncryptionCombo(QComboBox* const w, tr_quark const key)
@@ -299,6 +323,9 @@ void PrefsDialog::initDesktopTab()
 {
     initWidget(ui_.showTrayIconCheck, TR_KEY_show_notification_area_icon);
     initWidget(ui_.startMinimizedCheck, TR_KEY_start_minimized);
+    initWidget(ui_.singleInstanceCheck, TR_KEY_single_instance);
+    initWidget(ui_.touchModeCheck, TR_KEY_ui_touch_mode);
+    initThemeCombo(ui_.themeCombo, TR_KEY_ui_theme);
     initWidget(ui_.notifyOnTorrentAddedCheck, TR_KEY_torrent_added_notification_enabled);
     initWidget(ui_.notifyOnTorrentCompletedCheck, TR_KEY_torrent_complete_notification_enabled);
     initWidget(ui_.playSoundOnTorrentCompletedCheck, TR_KEY_torrent_complete_sound_enabled);

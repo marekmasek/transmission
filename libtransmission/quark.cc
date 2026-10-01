@@ -586,11 +586,13 @@ auto constexpr MyStatic = std::array<std::string_view, TR_N_KEYS>{
     "show_backup_trackers"sv, // gtk app, qt app
     "show_extra_peer_details"sv, // gtk app
     "show_filterbar"sv, // gtk app, qt app
+    "show_menubar"sv, // qt app
     "show_notification_area_icon"sv, // gtk app, qt app
     "show_options_window"sv, // gtk app, qt app
     "show_statusbar"sv, // gtk app, qt app
     "show_toolbar"sv, // gtk app, qt app
     "show_tracker_scrapes"sv, // gtk app, qt app
+    "single_instance"sv, // qt app
     "sitename"sv, // rpc
     "size-bytes"sv, // rpc
     "size-units"sv, // rpc
@@ -697,6 +699,8 @@ auto constexpr MyStatic = std::array<std::string_view, TR_N_KEYS>{
     "trash-original-torrent-files"sv, // gtk app, rpc, tr_session::Settings
     "trash_can_enabled"sv, // gtk app
     "trash_original_torrent_files"sv, // gtk app, rpc, tr_session::Settings
+    "ui_theme"sv, // qt app
+    "ui_touch_mode"sv, // qt app
     "umask"sv, // tr_session::Settings
     "units"sv, // rpc
     "upload-slots-per-torrent"sv, // tr_session::Settings

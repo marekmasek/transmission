@@ -17,6 +17,7 @@ public:
     [[nodiscard]] bool isConnected() const;
 
     [[nodiscard]] QVariant addMetainfo(QString const& metainfo) const;
+    [[nodiscard]] QVariant presentWindow() const;
 
     static void registerObject(QObject* parent);
 };

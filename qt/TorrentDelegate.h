@@ -34,6 +34,9 @@ public:
 
 protected:
     QSize margin(QStyle const& style) const;
+    void drawBackground(QPainter* painter, QStyleOptionViewItem const& option) const;
+    void setProgressBarColors(Torrent const& tor) const;
+    [[nodiscard]] static QColor textColor(QStyleOptionViewItem const& option, Torrent const& tor);
     void setProgressBarPercentDone(QStyleOptionViewItem const& option, Torrent const& tor) const;
     QIcon warningEmblem() const
     {
@@ -61,5 +64,6 @@ protected:
 private:
     QIcon const warning_emblem_ = icons::icon(icons::Type::TorrentErrorEmblem);
     mutable std::optional<int> height_hint_;
+    mutable int height_theme_generation_ = 0;
     mutable QFont height_font_;
 };

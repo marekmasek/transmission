@@ -37,6 +37,7 @@
 #include "Prefs.h"
 #include "QtCompat.h"
 #include "Session.h"
+#include "Theme.h"
 #include "TorrentModel.h"
 #include "WatchDir.h"
 
@@ -174,6 +175,8 @@ Application::Application(
 #if QT_CONFIG(accessibility)
     QAccessible::installFactory(&accessibleFactory);
 #endif
+
+    Theme::apply(prefs_.get<QString>(TR_KEY_ui_theme), prefs_.get<bool>(TR_KEY_ui_touch_mode));
 
     session_ = std::make_unique<Session>(config_dir, prefs_, rpc);
     model_ = std::make_unique<TorrentModel>(prefs_);
@@ -386,6 +389,11 @@ void Application::refreshPref(tr_quark key) const
         watch_dir_->setPath(prefs_.get<QString>(TR_KEY_watch_dir), prefs_.get<bool>(TR_KEY_watch_dir_enabled));
         break;
 
+    case TR_KEY_ui_theme:
+    case TR_KEY_ui_touch_mode:
+        Theme::apply(prefs_.get<QString>(TR_KEY_ui_theme), prefs_.get<bool>(TR_KEY_ui_touch_mode));
+        break;
+
     default:
         break;
     }
@@ -481,6 +489,12 @@ void Application::addTorrent(AddData addme) const
 void Application::raise() const
 {
     alert(window_.get());
+}
+
+// restores the main window from the tray or taskbar and brings it to the front
+void Application::presentWindow() const
+{
+    window_->present();
 }
 
 bool Application::notifyApp(QString const& title, QString const& body, QStringList const& actions) const

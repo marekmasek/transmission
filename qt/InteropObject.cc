@@ -14,7 +14,7 @@ InteropObject::InteropObject(QObject* parent)
 
 bool InteropObject::PresentWindow() const
 {
-    trApp->raise();
+    trApp->presentWindow();
     return true;
 }
 

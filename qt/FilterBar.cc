@@ -10,27 +10,37 @@
 #include <utility>
 
 #include <QHBoxLayout>
+#include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListView>
+#include <QPainter>
+#include <QSignalBlocker>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
+#include <QVBoxLayout>
 
 #include "Application.h"
 #include "FilterBarComboBox.h"
 #include "FilterBarComboBoxDelegate.h"
 #include "Filters.h"
+#include "FluentIcon.h"
 #include "IconCache.h"
 #include "NativeIcon.h"
 #include "Prefs.h"
 #include "Torrent.h"
 #include "TorrentFilter.h"
+#include "Theme.h"
 #include "TorrentModel.h"
+#include "StyleHelper.h"
 #include "Utils.h"
 
 // NOLINTNEXTLINE(performance-enum-size)
 enum
 {
     ACTIVITY_ROLE = FilterBarComboBox::UserRole,
-    TRACKER_ROLE
+    TRACKER_ROLE,
+    ICON_TYPE_ROLE
 };
 
 /***
@@ -56,6 +66,10 @@ FilterBarComboBox* FilterBar::createActivityCombo()
     {
         auto* new_row = type ? new QStandardItem{ icons::icon(*type), label } : new QStandardItem{ label };
         new_row->setData(QVariant::fromValue(show_mode), ACTIVITY_ROLE);
+        if (type)
+        {
+            new_row->setData(static_cast<int>(*type), ICON_TYPE_ROLE);
+        }
         model->appendRow(new_row);
     };
     add_row(ShowMode::ShowActive, tr("Active"), icons::Type::TorrentStateActive);
@@ -260,6 +274,190 @@ void FilterBar::clear()
 ****
 ***/
 
+namespace
+{
+
+// Windows 11 navigation item: icon, label, and the torrent count at the end.
+class SidebarDelegate : public QStyledItemDelegate
+{
+public:
+    SidebarDelegate(QString first_row_label, QIcon fallback_icon, QObject* parent)
+        : QStyledItemDelegate{ parent }
+        , first_row_label_{ std::move(first_row_label) }
+        , fallback_icon_{ std::move(fallback_icon) }
+    {
+    }
+
+    [[nodiscard]] QSize sizeHint(QStyleOptionViewItem const& option, QModelIndex const& /*index*/) const override
+    {
+        auto const height = std::max(Theme::isTouch() ? 44 : 34, QFontMetrics{ option.font }.height() + 14);
+        return { 120, height };
+    }
+
+    void paint(QPainter* painter, QStyleOptionViewItem const& option, QModelIndex const& index) const override
+    {
+        painter->save();
+        Theme::drawItemBackground(*painter, option);
+
+        auto rect = option.rect.adjusted(16, 0, -14, 0);
+        auto const icon_size = Theme::isTouch() ? 20 : 16;
+
+        // labels line up whether or not their row has an icon
+        auto const icon_rect = QStyle::alignedRect(
+            option.direction,
+            Qt::AlignLeft | Qt::AlignVCenter,
+            QSize{ icon_size, icon_size },
+            rect);
+        auto icon = Utils::getIconFromIndex(index);
+        if (icon.isNull())
+        {
+            icon = fallback_icon_;
+        }
+        icon.paint(painter, icon_rect, Qt::AlignCenter, StyleHelper::getIconMode(option.state), QIcon::Off);
+        Utils::narrowRect(rect, icon_size + 12, 0, option.direction);
+
+        auto const count = index.data(FilterBarComboBox::CountStringRole).toString();
+        auto const count_width = option.fontMetrics.horizontalAdvance(count);
+        auto const count_rect = QStyle::alignedRect(
+            option.direction,
+            Qt::AlignRight | Qt::AlignVCenter,
+            QSize{ count_width, rect.height() },
+            rect);
+        Utils::narrowRect(rect, 0, count_width + 8, option.direction);
+
+        auto const label = index.row() == 0 && !first_row_label_.isEmpty() ? first_row_label_ :
+                                                                             index.data(Qt::DisplayRole).toString();
+        auto const left = static_cast<int>(QStyle::visualAlignment(option.direction, Qt::AlignLeft | Qt::AlignVCenter));
+        auto const right = static_cast<int>(QStyle::visualAlignment(option.direction, Qt::AlignRight | Qt::AlignVCenter));
+
+        painter->setFont(option.font);
+        painter->setPen(option.palette.color(QPalette::Text));
+        painter->drawText(rect, left, option.fontMetrics.elidedText(label, Qt::ElideRight, rect.width()));
+        painter->setPen(option.palette.color(QPalette::PlaceholderText));
+        painter->drawText(count_rect, right, count);
+
+        painter->restore();
+    }
+
+private:
+    QString const first_row_label_;
+    QIcon const fallback_icon_;
+};
+
+// A sidebar list that mirrors one of the filter bar's combo boxes:
+// both share the combo's model and selecting in one selects in the other.
+QListView* createSidebarList(QComboBox* combo, QString const& first_row_label, QIcon const& fallback_icon, QWidget* parent)
+{
+    auto* const list = new QListView{ parent };
+    list->setModel(combo->model());
+    list->setItemDelegate(new SidebarDelegate{ first_row_label, fallback_icon, list });
+    list->setFrameShape(QFrame::NoFrame);
+    list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    list->setSelectionMode(QAbstractItemView::SingleSelection);
+    list->viewport()->setAttribute(Qt::WA_Hover);
+
+    auto const hide_separators = [list]()
+    {
+        auto const* const model = list->model();
+        for (int row = 0; row < model->rowCount(); ++row)
+        {
+            list->setRowHidden(row, FilterBarComboBoxDelegate::isSeparator(model->index(row, 0)));
+        }
+    };
+    hide_separators();
+    QObject::connect(list->model(), &QAbstractItemModel::rowsInserted, list, hide_separators);
+    QObject::connect(list->model(), &QAbstractItemModel::modelReset, list, hide_separators);
+
+    auto const select_combo_row = [list, combo]()
+    {
+        auto const blocker = QSignalBlocker{ list->selectionModel() };
+        list->selectionModel()->setCurrentIndex(
+            list->model()->index(combo->currentIndex(), 0),
+            QItemSelectionModel::ClearAndSelect);
+    };
+    select_combo_row();
+    QObject::connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), list, select_combo_row);
+
+    QObject::connect(
+        list->selectionModel(),
+        &QItemSelectionModel::currentChanged,
+        combo,
+        [combo](QModelIndex const& current)
+        {
+            if (current.isValid() && current.row() != combo->currentIndex())
+            {
+                combo->setCurrentIndex(current.row());
+            }
+        });
+
+    return list;
+}
+
+} // namespace
+
+QWidget* FilterBar::createSidebar(QWidget* parent)
+{
+    auto* const sidebar = new QWidget{ parent };
+    sidebar->setObjectName(QStringLiteral("filterSidebar"));
+    sidebar->setAttribute(Qt::WA_StyledBackground);
+
+    auto* const layout = new QVBoxLayout{ sidebar };
+    layout->setContentsMargins(4, 0, 4, 4);
+    layout->setSpacing(0);
+
+    // the sidebar only exists in the Modern theme, so it uses that theme's icons directly
+    auto* const status_list = createSidebarList(activity_combo_, {}, fluent::icon(QStringLiteral("list")), sidebar);
+    auto* const tracker_list = createSidebarList(
+        tracker_combo_,
+        tr("All trackers"),
+        fluent::icon(QStringLiteral("globe")),
+        sidebar);
+
+    // the status list never scrolls; the tracker list takes the remaining height
+    auto const fit_status_list = [status_list]()
+    {
+        auto height = 2 * status_list->frameWidth();
+        for (int row = 0; row < status_list->model()->rowCount(); ++row)
+        {
+            if (!status_list->isRowHidden(row))
+            {
+                height += status_list->sizeHintForRow(row);
+            }
+        }
+        status_list->setFixedHeight(height);
+    };
+    fit_status_list();
+    connect(this, &FilterBar::sidebarMetricsChanged, status_list, fit_status_list);
+
+    layout->addWidget(new QLabel{ tr("Status"), sidebar });
+    layout->addWidget(status_list);
+    layout->addWidget(new QLabel{ tr("Trackers"), sidebar });
+    layout->addWidget(tracker_list, 1);
+
+    sidebar->setMinimumWidth(180);
+    sidebar->setMaximumWidth(230);
+    return sidebar;
+}
+
+void FilterBar::refreshIcons()
+{
+    auto* const model = activity_combo_->model();
+    for (int row = 0; row < model->rowCount(); ++row)
+    {
+        auto const index = model->index(row, 0);
+        if (auto const type = index.data(ICON_TYPE_ROLE); type.isValid())
+        {
+            model->setData(index, icons::icon(static_cast<icons::Type>(type.toInt())), Qt::DecorationRole);
+        }
+    }
+}
+
+void FilterBar::focusSearch()
+{
+    line_edit_->setFocus(Qt::ShortcutFocusReason);
+    line_edit_->selectAll();
+}
+
 void FilterBar::refreshPref(tr_quark key)
 {
     switch (key)
@@ -293,6 +491,14 @@ void FilterBar::refreshPref(tr_quark key)
 
             break;
         }
+
+    case TR_KEY_filter_text:
+        if (auto const text = prefs_.get<QString>(key); line_edit_->text().trimmed() != text)
+        {
+            auto const blocker = QSignalBlocker{ line_edit_ };
+            line_edit_->setText(text);
+        }
+        break;
 
     default:
         break;

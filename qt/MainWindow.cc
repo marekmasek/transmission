@@ -15,8 +15,14 @@
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
+#include <QActionGroup>
+#include <QMenu>
 #include <QPainter>
-#include <QProxyStyle>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QShortcut>
+#include <QSignalBlocker>
+#include <QToolButton>
 #include <QtGui>
 
 #include <libtransmission/transmission.h>
@@ -27,6 +33,7 @@
 #include "Application.h"
 #include "DetailsDialog.h"
 #include "FilterBar.h"
+#include "FluentIcon.h"
 #include "Filters.h"
 #include "Formatter.h"
 #include "MainWindow.h"
@@ -43,7 +50,9 @@
 #include "StatsDialog.h"
 #include "TorrentDelegate.h"
 #include "TorrentDelegateMin.h"
+#include "TorrentDelegateRow.h"
 #include "TorrentFilter.h"
+#include "Theme.h"
 #include "TorrentModel.h"
 #include "Utils.h"
 
@@ -55,37 +64,15 @@ char const* const SortModeKey = "sort-mode";
 
 } // namespace
 
-/**
- * This is a proxy-style for that forces it to be always disabled.
- * We use this to make our torrent list view behave consistently on
- * both GTK and Qt implementations.
- */
-class ListViewProxyStyle : public QProxyStyle
-{
-public:
-    int styleHint(
-        StyleHint hint,
-        QStyleOption const* option = nullptr,
-        QWidget const* widget = nullptr,
-        QStyleHintReturn* return_data = nullptr) const override
-    {
-        if (hint == QStyle::SH_ItemView_ActivateItemOnSingleClick)
-        {
-            return 0;
-        }
-
-        return QProxyStyle::styleHint(hint, option, widget, return_data);
-    }
-};
-
 MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool minimized)
     : session_{ session }
     , prefs_{ prefs }
     , model_{ model }
-    , lvp_style_{ std::make_shared<ListViewProxyStyle>() }
     , filter_model_{ prefs }
     , torrent_delegate_{ new TorrentDelegate{ this } }
     , torrent_delegate_min_{ new TorrentDelegateMin{ this } }
+    , torrent_delegate_row_{ new TorrentDelegateRow{ false, this } }
+    , torrent_delegate_row_compact_{ new TorrentDelegateRow{ true, this } }
     , network_timer_{ this }
     , refresh_timer_{ this }
 {
@@ -95,8 +82,9 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     qApp->setAttribute(Qt::ApplicationAttribute::AA_DontShowIconsInMenus, false);
 
     ui_.setupUi(this);
+    initAppMenu();
+    refreshControlSizes();
 
-    ui_.listView->setStyle(lvp_style_.get());
     ui_.listView->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     // ui signals
@@ -214,6 +202,17 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     ui_.verticalLayout->insertWidget(0, filter_bar);
     filter_bar_ = filter_bar;
 
+    // the Modern theme shows the filters as a sidebar beside the list
+    sidebar_ = filter_bar->createSidebar(ui_.centralwidget);
+    auto* const list_row = new QHBoxLayout{};
+    list_row->setContentsMargins(0, 0, 0, 0);
+    list_row->setSpacing(0);
+    auto const list_index = ui_.verticalLayout->indexOf(ui_.listView);
+    ui_.verticalLayout->removeWidget(ui_.listView);
+    list_row->addWidget(sidebar_);
+    list_row->addWidget(ui_.listView, 1);
+    ui_.verticalLayout->insertLayout(list_index, list_row, 1);
+
     auto refresh_header_soon = [this]()
     {
         refreshSoon(RefreshTorrentViewHeader);
@@ -223,8 +222,9 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     connect(&filter_model_, &TorrentFilter::rowsInserted, this, refresh_header_soon);
     connect(&filter_model_, &TorrentFilter::rowsRemoved, this, refresh_header_soon);
     connect(ui_.listView, &TorrentView::headerDoubleClicked, filter_bar, &FilterBar::clear);
+    connect(ui_.listView, &TorrentView::sortRequested, this, &MainWindow::onSortRequested);
 
-    static std::array<tr_quark, 17> constexpr InitKeys = {
+    static std::array<tr_quark, 19> constexpr InitKeys = {
         TR_KEY_alt_speed_enabled, //
         TR_KEY_compact_view, //
         TR_KEY_speed_limit_down, //
@@ -240,6 +240,8 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
         TR_KEY_show_statusbar, //
         TR_KEY_statusbar_stats, //
         TR_KEY_show_toolbar, //
+        TR_KEY_show_menubar, //
+        TR_KEY_filter_text, //
         TR_KEY_speed_limit_up, //
         TR_KEY_speed_limit_up_enabled, //
     };
@@ -944,6 +946,32 @@ void MainWindow::refreshIcons()
     pixmap_network_transmit_ = network_pixmap(icons::Type::NetworkTransmit);
     pixmap_network_transmit_receive_ = network_pixmap(icons::Type::NetworkTransmitReceive);
     pixmap_network_error_ = network_pixmap(icons::Type::NetworkError);
+
+    if (filter_bar_ != nullptr)
+    {
+        filter_bar_->refreshIcons();
+    }
+
+    // status bar and menu buttons
+    auto const modern = Theme::isModern();
+    auto const menu_icon = modern ? fluent::icon(QStringLiteral("navigation")) :
+                                    QIcon{ QStringLiteral(":/icons/hamburger-menu.svg") };
+    ui_.optionsButton->setIcon(menu_icon);
+    app_menu_button_->setIcon(menu_icon);
+    ui_.statsModeButton->setIcon(
+        modern ? fluent::icon(QStringLiteral("data_pie")) : QIcon{ QStringLiteral(":/icons/ratio.svg") });
+
+    if (modern)
+    {
+        ui_.altSpeedButton->setIcon(
+            fluent::toggleIcon(QStringLiteral("animal_turtle"), QStringLiteral("animal_turtle_filled")));
+    }
+    else
+    {
+        auto turtle = QIcon{ QStringLiteral(":/icons/alt-limit-off.svg") };
+        turtle.addFile(QStringLiteral(":/icons/alt-limit-on.svg"), {}, QIcon::Normal, QIcon::On);
+        ui_.altSpeedButton->setIcon(turtle);
+    }
 }
 
 /**
@@ -1147,11 +1175,13 @@ void MainWindow::refreshPref(tr_quark const key)
 
     case TR_KEY_sort_reversed:
         ui_.action_ReverseSortOrder->setChecked(prefs_.get<bool>(key));
+        ui_.listView->setSortIndicator(prefs_.get<SortMode>(TR_KEY_sort_mode), prefs_.get<bool>(key));
         break;
 
     case TR_KEY_sort_mode:
         {
             auto const sort_mode = prefs_.get<SortMode>(key);
+            ui_.listView->setSortIndicator(sort_mode, prefs_.get<bool>(TR_KEY_sort_reversed));
             for (auto* action : ui_.action_SortByActivity->actionGroup()->actions())
             {
                 action->setChecked(sort_mode == action->property(SortModeKey).value<SortMode>());
@@ -1185,9 +1215,16 @@ void MainWindow::refreshPref(tr_quark const key)
         break;
 
     case TR_KEY_show_filterbar:
-        b = prefs_.get<bool>(key);
-        filter_bar_->setVisible(b);
-        ui_.action_Filterbar->setChecked(b);
+        ui_.action_Filterbar->setChecked(prefs_.get<bool>(key));
+        refreshChrome();
+        break;
+
+    case TR_KEY_filter_text:
+        if (auto const text = prefs_.get<QString>(key); search_edit_->text().trimmed() != text)
+        {
+            auto const blocker = QSignalBlocker{ search_edit_ };
+            search_edit_->setText(text);
+        }
         break;
 
     case TR_KEY_show_statusbar:
@@ -1200,6 +1237,12 @@ void MainWindow::refreshPref(tr_quark const key)
         b = prefs_.get<bool>(key);
         ui_.toolBar->setVisible(b);
         ui_.action_Toolbar->setChecked(b);
+        refreshChrome();
+        break;
+
+    case TR_KEY_show_menubar:
+        show_menubar_action_->setChecked(prefs_.get<bool>(key));
+        refreshChrome();
         break;
 
     case TR_KEY_show_notification_area_icon:
@@ -1213,7 +1256,7 @@ void MainWindow::refreshPref(tr_quark const key)
     case TR_KEY_compact_view:
         b = prefs_.get<bool>(key);
         ui_.action_CompactView->setChecked(b);
-        ui_.listView->setItemDelegate(b ? torrent_delegate_min_ : torrent_delegate_);
+        refreshListDelegate();
         break;
 
     case TR_KEY_main_window_x:
@@ -1633,11 +1676,230 @@ bool MainWindow::event(QEvent* e)
         refreshSoon(RefreshIcon);
         break;
 
+    case QEvent::StyleChange:
+        refreshControlSizes();
+        refreshChrome();
+        refreshListDelegate();
+        break;
+
     default:
         break;
     }
 
     return QMainWindow::event(e);
+}
+
+// The Modern theme replaces the menu bar with a menu button at the end of
+// the tool bar: menu bar items are too small to tap and look dated.
+void MainWindow::initAppMenu()
+{
+    show_menubar_action_ = new QAction{ tr("&Menu Bar"), this };
+    show_menubar_action_->setCheckable(true);
+    ui_.menu_View->insertAction(ui_.action_Toolbar, show_menubar_action_);
+
+    auto* const theme_menu = new QMenu{ tr("T&heme"), this };
+    auto* const theme_group = new QActionGroup{ theme_menu };
+    for (auto const& choice : Theme::choices())
+    {
+        auto* const action = theme_menu->addAction(choice.label);
+        action->setCheckable(true);
+        action->setData(choice.id);
+        theme_group->addAction(action);
+        connect(action, &QAction::triggered, this, [this, id = choice.id]() { prefs_.set(TR_KEY_ui_theme, id); });
+    }
+    theme_menu->addSeparator();
+    touch_mode_action_ = theme_menu->addAction(tr("&Touch Mode"));
+    touch_mode_action_->setCheckable(true);
+    connect(touch_mode_action_, &QAction::triggered, this, [this](bool checked) { prefs_.set(TR_KEY_ui_touch_mode, checked); });
+    theme_actions_ = theme_group->actions();
+    ui_.menu_View->insertMenu(ui_.action_CompactView, theme_menu);
+    connect(show_menubar_action_, &QAction::toggled, this, [this](bool visible) { prefs_.set(TR_KEY_show_menubar, visible); });
+
+    auto* const menu = new QMenu{ this };
+    for (auto* const menubar_action : ui_.menubar->actions())
+    {
+        menu->addAction(menubar_action);
+
+        // keep shortcuts working while the menu bar is hidden
+        if (auto* const submenu = menubar_action->menu(); submenu != nullptr)
+        {
+            addActions(submenu->actions());
+        }
+    }
+
+    auto* const spacer = new QWidget{ ui_.toolBar };
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    app_menu_spacer_action_ = ui_.toolBar->addWidget(spacer);
+
+    search_edit_ = new QLineEdit{ ui_.toolBar };
+    search_edit_->setPlaceholderText(tr("Search torrents"));
+    search_edit_->setClearButtonEnabled(true);
+    search_edit_->setMinimumWidth(180);
+    search_edit_->setMaximumWidth(280);
+    search_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    connect(
+        search_edit_,
+        &QLineEdit::textChanged,
+        this,
+        [this](QString const& text) { prefs_.set(TR_KEY_filter_text, text.trimmed()); });
+    search_action_ = ui_.toolBar->addWidget(search_edit_);
+
+    auto* const find = new QShortcut{ QKeySequence::Find, this };
+    connect(
+        find,
+        &QShortcut::activated,
+        this,
+        [this]()
+        {
+            if (search_edit_->isVisible())
+            {
+                search_edit_->setFocus(Qt::ShortcutFocusReason);
+                search_edit_->selectAll();
+            }
+            else
+            {
+                prefs_.set(TR_KEY_show_filterbar, true);
+                filter_bar_->focusSearch();
+            }
+        });
+
+    // the Windows 11 command bar labels every button and stresses the main one
+    if (auto* const open_button = ui_.toolBar->widgetForAction(ui_.action_OpenFile); open_button != nullptr)
+    {
+        open_button->setObjectName(QStringLiteral("primaryAction"));
+    }
+
+    for (auto* const action : ui_.toolBar->actions())
+    {
+        toolbar_priorities_.emplace_back(action, action->priority());
+    }
+
+    open_menu_ = new QMenu{ this };
+    open_menu_->addAction(ui_.action_AddURL);
+
+    app_menu_button_ = new QToolButton{ ui_.toolBar };
+    app_menu_button_->setText(tr("Menu"));
+    app_menu_button_->setToolTip(tr("Menu (F10)"));
+    app_menu_button_->setMenu(menu);
+    app_menu_button_->setPopupMode(QToolButton::InstantPopup);
+    app_menu_button_->setToolButtonStyle(Qt::ToolButtonFollowStyle);
+    // the menu follows the last command; the search box ends the bar on the right
+    app_menu_action_ = ui_.toolBar->insertWidget(app_menu_spacer_action_, app_menu_button_);
+
+    auto* const shortcut = new QShortcut{ QKeySequence{ Qt::Key_F10 }, this };
+    connect(
+        shortcut,
+        &QShortcut::activated,
+        this,
+        [this]()
+        {
+            if (app_menu_button_->isVisible())
+            {
+                app_menu_button_->showMenu();
+            }
+            else if (auto const actions = ui_.menubar->actions(); !actions.isEmpty())
+            {
+                ui_.menubar->setActiveAction(actions.front());
+            }
+        });
+}
+
+void MainWindow::refreshListDelegate()
+{
+    auto const compact = prefs_.get<bool>(TR_KEY_compact_view);
+    QAbstractItemDelegate* delegate = compact ? torrent_delegate_min_ : torrent_delegate_;
+    if (Theme::isModern())
+    {
+        delegate = compact ? torrent_delegate_row_compact_ : torrent_delegate_row_;
+    }
+
+    if (ui_.listView->itemDelegate() != delegate)
+    {
+        ui_.listView->setItemDelegate(delegate);
+    }
+
+    ui_.listView->setColumnHeaderVisible(Theme::isModern());
+}
+
+// a click on the column that is already sorted reverses the order
+void MainWindow::onSortRequested(SortMode mode)
+{
+    if (prefs_.get<SortMode>(TR_KEY_sort_mode) == mode)
+    {
+        prefs_.set(TR_KEY_sort_reversed, !prefs_.get<bool>(TR_KEY_sort_reversed));
+    }
+    else
+    {
+        prefs_.set(TR_KEY_sort_mode, mode);
+        prefs_.set(TR_KEY_sort_reversed, false);
+    }
+}
+
+void MainWindow::refreshChrome()
+{
+    if (sidebar_ == nullptr) // not built yet
+    {
+        return;
+    }
+
+    auto const modern = Theme::isModern();
+
+    // never leave the window without a visible way to reach the menus
+    auto const use_app_menu = modern && !prefs_.get<bool>(TR_KEY_show_menubar) && prefs_.get<bool>(TR_KEY_show_toolbar);
+    ui_.menubar->setVisible(!use_app_menu);
+    app_menu_action_->setVisible(use_app_menu);
+
+    // Modern moves the filter bar's search into the command bar
+    // and its status and tracker filters into the sidebar
+    auto const show_filters = prefs_.get<bool>(TR_KEY_show_filterbar);
+    filter_bar_->setVisible(!modern && show_filters);
+    sidebar_->setVisible(modern && show_filters);
+    search_action_->setVisible(modern);
+    app_menu_spacer_action_->setVisible(modern);
+    filter_bar_->refreshSidebarMetrics();
+
+    for (auto* const action : theme_actions_)
+    {
+        action->setChecked(action->data().toString() == prefs_.get<QString>(TR_KEY_ui_theme));
+    }
+    touch_mode_action_->setChecked(Theme::isTouch());
+
+    for (auto const& [action, priority] : toolbar_priorities_)
+    {
+        action->setPriority(modern ? QAction::NormalPriority : priority);
+    }
+
+    // Modern folds Open URL into a drop-down on the Open button
+    if (auto const url_in_toolbar = ui_.toolBar->actions().contains(ui_.action_AddURL); modern && url_in_toolbar)
+    {
+        ui_.toolBar->removeAction(ui_.action_AddURL);
+    }
+    else if (!modern && !url_in_toolbar)
+    {
+        ui_.toolBar->insertAction(ui_.action_Start, ui_.action_AddURL);
+    }
+
+    if (auto* const open_button = qobject_cast<QToolButton*>(ui_.toolBar->widgetForAction(ui_.action_OpenFile));
+        open_button != nullptr)
+    {
+        open_button->setMenu(modern ? open_menu_ : nullptr);
+        open_button->setPopupMode(modern ? QToolButton::MenuButtonPopup : QToolButton::DelayedPopup);
+    }
+}
+
+// the .ui file pins the icon sizes, so follow the theme's metrics by hand
+void MainWindow::refreshControlSizes()
+{
+    if (auto const size = style()->pixelMetric(QStyle::PM_ToolBarIconSize, nullptr, ui_.toolBar); size > 0)
+    {
+        ui_.toolBar->setIconSize({ size, size });
+    }
+
+    auto const status_icon_size = Theme::isTouch() ? 24 : 16;
+    for (auto* const button : { ui_.optionsButton, ui_.altSpeedButton, ui_.statsModeButton })
+    {
+        button->setIconSize({ status_icon_size, status_icon_size });
+    }
 }
 
 /***

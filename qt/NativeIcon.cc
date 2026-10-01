@@ -22,6 +22,9 @@
 
 #include <small/set.hpp>
 
+#include "FluentIcon.h"
+#include "Theme.h"
+
 #if defined(Q_OS_MAC)
 extern QPixmap loadSFSymbol(QString symbol_name, int pixel_size);
 #endif
@@ -439,10 +442,110 @@ struct Info
         .ok_in_gnome_menus = ok_in_gnome_menus,
     };
 }
+
+[[nodiscard]] QString fluentName(Type const type)
+{
+    switch (type)
+    {
+    case Type::AddTracker:
+        return QStringLiteral("add");
+    case Type::EditTrackers:
+        return QStringLiteral("edit");
+    case Type::RemoveTracker:
+        return QStringLiteral("subtract");
+    case Type::AddTorrentFromFile:
+        return QStringLiteral("folder_open");
+    case Type::AddTorrentFromURL:
+        return QStringLiteral("link");
+    case Type::CreateNewTorrent:
+        return QStringLiteral("document_add");
+    case Type::OpenTorrentDetails:
+    case Type::About:
+        return QStringLiteral("info");
+    case Type::OpenTorrentLocalFolder:
+        return QStringLiteral("folder");
+    case Type::StartTorrent:
+        return QStringLiteral("play");
+    case Type::StartTorrentNow:
+        return QStringLiteral("fast_forward");
+    case Type::PauseTorrent:
+        return QStringLiteral("pause");
+    case Type::RemoveTorrent:
+        return QStringLiteral("delete");
+    case Type::RemoveTorrentAndDeleteData:
+        return QStringLiteral("delete_dismiss");
+    case Type::SetTorrentLocation:
+        return QStringLiteral("folder_arrow_right");
+    case Type::CopyMagnetLinkToClipboard:
+        return QStringLiteral("clipboard_link");
+    case Type::VerifyTorrent:
+        return QStringLiteral("shield_checkmark");
+    case Type::TorrentErrorEmblem:
+    case Type::TorrentStateError:
+        return QStringLiteral("error_circle");
+    case Type::SelectAll:
+        return QStringLiteral("select_all_on");
+    case Type::DeselectAll:
+        return QStringLiteral("select_all_off");
+    case Type::Statistics:
+        return QStringLiteral("data_histogram");
+    case Type::Settings:
+        return QStringLiteral("settings");
+    case Type::QuitApp:
+        return QStringLiteral("arrow_exit");
+    case Type::Donate:
+        return QStringLiteral("heart");
+    case Type::Help:
+        return QStringLiteral("question_circle");
+    case Type::QueueMoveTop:
+        return QStringLiteral("chevron_double_up");
+    case Type::QueueMoveUp:
+        return QStringLiteral("arrow_up");
+    case Type::QueueMoveDown:
+        return QStringLiteral("arrow_down");
+    case Type::QueueMoveBottom:
+        return QStringLiteral("chevron_double_down");
+    case Type::NetworkIdle:
+        return QStringLiteral("arrow_sort");
+    case Type::NetworkReceive:
+        return QStringLiteral("arrow_download");
+    case Type::NetworkTransmit:
+        return QStringLiteral("arrow_upload");
+    case Type::NetworkTransmitReceive:
+        return QStringLiteral("arrow_bidirectional_up_down");
+    case Type::NetworkError:
+        return QStringLiteral("plug_disconnected");
+    case Type::TorrentStateActive:
+        return QStringLiteral("flash");
+    case Type::TorrentStateSeeding:
+        return QStringLiteral("arrow_circle_up");
+    case Type::TorrentStateDownloading:
+        return QStringLiteral("arrow_circle_down");
+    case Type::TorrentStatePaused:
+        return QStringLiteral("pause_circle");
+    case Type::TorrentStateFinished:
+        return QStringLiteral("checkmark_circle");
+    case Type::TorrentStateVerifying:
+        return QStringLiteral("arrow_sync_circle");
+    }
+
+    return QStringLiteral("document");
+}
 } // namespace
 
 QIcon icon(Type const type, QStyle const* const style)
 {
+    // the Modern theme looks the same everywhere, so it brings its own icons
+    if (Theme::isModern())
+    {
+        if (type == Type::TorrentErrorEmblem)
+        {
+            return fluent::icon(QStringLiteral("error_circle_filled"), Theme::errorColor());
+        }
+
+        return fluent::icon(fluentName(type));
+    }
+
     ensureFontsLoaded();
 
     auto const pixel_sizes = small::max_size_set<int, 7U>{

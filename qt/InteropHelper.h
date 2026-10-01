@@ -21,6 +21,9 @@ public:
 
     [[nodiscard]] bool addMetainfo(QString const& metainfo) const;
 
+    // asks a running instance to show its window; false if none answered
+    [[nodiscard]] bool presentWindow() const;
+
     static void initialize();
     static void registerObject(QObject* parent);
 

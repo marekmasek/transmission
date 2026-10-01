@@ -38,6 +38,18 @@ QVariant ComInteropHelper::addMetainfo(QString const& metainfo) const
     return client_->dynamicCall("AddMetainfo(QString)", metainfo);
 }
 
+QVariant ComInteropHelper::presentWindow() const
+{
+    if (client_->isNull())
+    {
+        return {};
+    }
+
+    // Windows only lets the foreground process hand focus to another one
+    ::AllowSetForegroundWindow(ASFW_ANY);
+    return client_->dynamicCall("PresentWindow()");
+}
+
 void ComInteropHelper::initialize()
 {
     qAxOutProcServer = true;

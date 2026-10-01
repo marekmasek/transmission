@@ -30,15 +30,8 @@ class IconCache
 public:
     static IconCache& get();
 
-    [[nodiscard]] constexpr auto const& folderIcon() const noexcept
-    {
-        return folder_icon_;
-    }
-
-    [[nodiscard]] constexpr auto const& fileIcon() const noexcept
-    {
-        return file_icon_;
-    }
+    [[nodiscard]] QIcon folderIcon() const;
+    [[nodiscard]] QIcon fileIcon() const;
 
     QIcon guessMimeIcon(QString const& filename, QIcon fallback = {}) const;
     QIcon getMimeTypeIcon(QString const& mime_type, bool multifile) const;
