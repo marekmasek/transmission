@@ -10,11 +10,13 @@
   <qresource prefix="/themes">
       <file alias="modern.qss">themes/modern.qss</file>
       <file alias="check.svg">themes/check.svg</file>
-      <file alias="check-accent.svg">themes/check-accent.svg</file>
+      <file alias="check-black.svg">themes/check-black.svg</file>
+      <file alias="check-text-light.svg">themes/check-text-light.svg</file>
       <file alias="chevron-down.svg">themes/chevron-down.svg</file>
       <file alias="chevron-up.svg">themes/chevron-up.svg</file>
       <file alias="dash.svg">themes/dash.svg</file>
+      <file alias="dash-black.svg">themes/dash-black.svg</file>
       <file alias="dot.svg">themes/dot.svg</file>
-      <file alias="dot-accent.svg">themes/dot-accent.svg</file>
+      <file alias="dot-black.svg">themes/dot-black.svg</file>
   </qresource>
 </RCC>

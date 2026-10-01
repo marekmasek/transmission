@@ -54,6 +54,7 @@ public:
     ~Application() override;
 
     void raise() const;
+    void presentWindow() const;
     bool notifyApp(QString const& title, QString const& body, QStringList const& actions = {}) const;
 
     QString intern(QString const& in);

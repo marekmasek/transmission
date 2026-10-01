@@ -67,68 +67,65 @@ struct Scheme
     QColor scroll_hover;
     QColor track;
     QColor error;
-    QColor download_from;
-    QColor download_to;
-    QColor seed_from;
-    QColor seed_to;
-    QColor idle_from;
-    QColor idle_to;
+    QColor download;
+    QColor seed;
+    QColor idle;
+    QColor on_accent;
+    QColor surface;
 };
 
 Scheme const LightScheme = {
-    .window = QColor{ 0xF4, 0xF5, 0xFA },
+    .window = QColor{ 0xF3, 0xF3, 0xF3 },
     .base = QColor{ 0xFF, 0xFF, 0xFF },
-    .alt_base = QColor{ 0xF7, 0xF8, 0xFC },
-    .text = QColor{ 0x1B, 0x1F, 0x2A },
-    .muted = QColor{ 0x6B, 0x72, 0x83 },
-    .button = QColor{ 0xFF, 0xFF, 0xFF },
-    .border = QColor{ 0xDC, 0xE0, 0xEA },
-    .border_strong = QColor{ 0xB9, 0xC0, 0xCE },
-    .hover = QColor{ 91, 95, 239, 20 },
-    .hover_solid = QColor{ 0xF1, 0xF2, 0xFE },
-    .accent = QColor{ 0x5B, 0x5F, 0xEF },
-    .accent2 = QColor{ 0xA8, 0x55, 0xF7 },
-    .accent_soft = QColor{ 91, 95, 239, 36 },
-    .accent_border = QColor{ 91, 95, 239, 115 },
-    .accent_text = QColor{ 0x4A, 0x4F, 0xD8 },
-    .scroll = QColor{ 27, 31, 42, 70 },
-    .scroll_hover = QColor{ 27, 31, 42, 130 },
-    .track = QColor{ 27, 31, 42, 22 },
-    .error = QColor{ 0xDC, 0x35, 0x45 },
-    .download_from = QColor{ 0x3B, 0x82, 0xF6 },
-    .download_to = QColor{ 0x8B, 0x5C, 0xF6 },
-    .seed_from = QColor{ 0x10, 0xB9, 0x81 },
-    .seed_to = QColor{ 0x06, 0xB6, 0xD4 },
-    .idle_from = QColor{ 0x9A, 0xA3, 0xB2 },
-    .idle_to = QColor{ 0xC2, 0xC8, 0xD2 },
+    .alt_base = QColor{ 0xF9, 0xF9, 0xF9 },
+    .text = QColor{ 0x1A, 0x1A, 0x1A },
+    .muted = QColor{ 0x5F, 0x5F, 0x5F },
+    .button = QColor{ 0xFB, 0xFB, 0xFB },
+    .border = QColor{ 0xE5, 0xE5, 0xE5 },
+    .border_strong = QColor{ 0xC8, 0xC8, 0xC8 },
+    .hover = QColor{ 0, 0, 0, 10 },
+    .hover_solid = QColor{ 0xF6, 0xF6, 0xF6 },
+    .accent = QColor{ 0x00, 0x5F, 0xB8 },
+    .accent2 = QColor{ 0x19, 0x6E, 0xBF },
+    .accent_soft = QColor{ 0, 95, 184, 24 },
+    .accent_border = QColor{ 0, 95, 184, 130 },
+    .accent_text = QColor{ 0x00, 0x3E, 0x92 },
+    .scroll = QColor{ 0, 0, 0, 90 },
+    .scroll_hover = QColor{ 0, 0, 0, 140 },
+    .track = QColor{ 0, 0, 0, 40 },
+    .error = QColor{ 0xC4, 0x2B, 0x1C },
+    .download = QColor{ 0x00, 0x5F, 0xB8 },
+    .seed = QColor{ 0x0F, 0x7B, 0x0F },
+    .idle = QColor{ 0x8A, 0x8A, 0x8A },
+    .on_accent = QColor{ 0xFF, 0xFF, 0xFF },
+    .surface = QColor{ 0xFB, 0xFB, 0xFB },
 };
 
 Scheme const DarkScheme = {
-    .window = QColor{ 0x0F, 0x11, 0x17 },
-    .base = QColor{ 0x18, 0x1B, 0x23 },
-    .alt_base = QColor{ 0x1D, 0x21, 0x2A },
-    .text = QColor{ 0xE6, 0xE8, 0xEF },
-    .muted = QColor{ 0x8E, 0x95, 0xA6 },
-    .button = QColor{ 0x22, 0x26, 0x31 },
-    .border = QColor{ 0x2A, 0x2F, 0x3B },
-    .border_strong = QColor{ 0x44, 0x4B, 0x5A },
-    .hover = QColor{ 124, 131, 255, 28 },
-    .hover_solid = QColor{ 0x27, 0x2B, 0x38 },
-    .accent = QColor{ 0x7C, 0x83, 0xFF },
-    .accent2 = QColor{ 0xC0, 0x84, 0xFC },
-    .accent_soft = QColor{ 124, 131, 255, 50 },
-    .accent_border = QColor{ 124, 131, 255, 140 },
-    .accent_text = QColor{ 0xA9, 0xAE, 0xFF },
-    .scroll = QColor{ 230, 232, 240, 55 },
-    .scroll_hover = QColor{ 230, 232, 240, 110 },
-    .track = QColor{ 255, 255, 255, 22 },
-    .error = QColor{ 0xFF, 0x6B, 0x6B },
-    .download_from = QColor{ 0x60, 0xA5, 0xFA },
-    .download_to = QColor{ 0xA7, 0x8B, 0xFA },
-    .seed_from = QColor{ 0x34, 0xD3, 0x99 },
-    .seed_to = QColor{ 0x22, 0xD3, 0xEE },
-    .idle_from = QColor{ 0x5B, 0x62, 0x73 },
-    .idle_to = QColor{ 0x7A, 0x82, 0x94 },
+    .window = QColor{ 0x20, 0x20, 0x20 },
+    .base = QColor{ 0x2D, 0x2D, 0x2D },
+    .alt_base = QColor{ 0x2A, 0x2A, 0x2A },
+    .text = QColor{ 0xFF, 0xFF, 0xFF },
+    .muted = QColor{ 0xC5, 0xC5, 0xC5 },
+    .button = QColor{ 0x2D, 0x2D, 0x2D },
+    .border = QColor{ 0x35, 0x35, 0x35 },
+    .border_strong = QColor{ 0x47, 0x47, 0x47 },
+    .hover = QColor{ 255, 255, 255, 15 },
+    .hover_solid = QColor{ 0x32, 0x32, 0x32 },
+    .accent = QColor{ 0x60, 0xCD, 0xFF },
+    .accent2 = QColor{ 0x5A, 0xB9, 0xE6 },
+    .accent_soft = QColor{ 96, 205, 255, 30 },
+    .accent_border = QColor{ 96, 205, 255, 150 },
+    .accent_text = QColor{ 0x99, 0xEB, 0xFF },
+    .scroll = QColor{ 255, 255, 255, 90 },
+    .scroll_hover = QColor{ 255, 255, 255, 150 },
+    .track = QColor{ 255, 255, 255, 45 },
+    .error = QColor{ 0xFF, 0x99, 0xA4 },
+    .download = QColor{ 0x60, 0xCD, 0xFF },
+    .seed = QColor{ 0x6C, 0xCB, 0x5F },
+    .idle = QColor{ 0x9A, 0x9A, 0x9A },
+    .on_accent = QColor{ 0x00, 0x00, 0x00 },
+    .surface = QColor{ 0x27, 0x27, 0x27 },
 };
 
 struct State
@@ -368,7 +365,7 @@ public:
             switch (metric)
             {
             case PM_ToolBarIconSize:
-                return 32;
+                return st.modern ? 20 : 32;
 
             case PM_ScrollBarExtent:
                 return std::max(base, 18);
@@ -389,7 +386,7 @@ public:
 
         if (st.modern && metric == PM_ToolBarIconSize)
         {
-            return 24;
+            return 16;
         }
 
         return base;
@@ -451,9 +448,10 @@ public:
             return 0;
         }
 
-        if (hint == SH_ToolButtonStyle && state().touch)
+        if (hint == SH_ToolButtonStyle && (state().modern || state().touch))
         {
-            return Qt::ToolButtonTextUnderIcon;
+            // a Windows 11 command bar labels its buttons
+            return state().modern ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonTextUnderIcon;
         }
 
         return QProxyStyle::styleHint(hint, option, widget, return_data);
@@ -496,6 +494,7 @@ QString makeStyleSheet()
     auto qss = QString::fromUtf8(file.readAll());
     auto const& s = scheme();
     auto const touch = state().touch;
+    auto const dark = state().dark;
 
 #ifdef _WIN32
     auto const menu_radius = 8; // matches DWMWCP_ROUND
@@ -505,6 +504,13 @@ QString makeStyleSheet()
 
     auto const tokens = std::initializer_list<std::pair<char const*, QString>>{
         { "window", qssColor(s.window) },
+        { "check", dark ? QStringLiteral(":/themes/check-black.svg") : QStringLiteral(":/themes/check.svg") },
+        { "dash", dark ? QStringLiteral(":/themes/dash-black.svg") : QStringLiteral(":/themes/dash.svg") },
+        { "dot", dark ? QStringLiteral(":/themes/dot-black.svg") : QStringLiteral(":/themes/dot.svg") },
+        { "menu_check", dark ? QStringLiteral(":/themes/check.svg") : QStringLiteral(":/themes/check-text-light.svg") },
+        { "nav_pad", QString::number(touch ? 10 : 5) },
+        { "on_accent", qssColor(s.on_accent) },
+        { "surface", qssColor(s.surface) },
         { "base", qssColor(s.base) },
         { "alt_base", qssColor(s.alt_base) },
         { "text", qssColor(s.text) },
@@ -520,20 +526,20 @@ QString makeStyleSheet()
         { "accent2", qssColor(s.accent2) },
         { "accent", qssColor(s.accent) },
         { "scroll_hover", qssColor(s.scroll_hover) },
-        { "scroll_w", QString::number(touch ? 16 : 10) },
-        { "scroll_r", QString::number(touch ? 6 : 3) },
+        { "scroll_w", QString::number(touch ? 14 : 8) },
+        { "scroll_r", QString::number(touch ? 5 : 2) },
         { "scroll", qssColor(s.scroll) },
         { "track", qssColor(s.track) },
         { "pad_s", QString::number(touch ? 8 : 4) },
-        { "ctl_h", QString::number(touch ? TouchControlHeight - 2 * 9 : 20) },
-        { "radius_l", QString::number(touch ? 14 : 12) },
-        { "radius", QString::number(touch ? 10 : 7) },
-        { "menu_pad", QString::number(touch ? 11 : 6) },
+        { "ctl_h", QString::number(touch ? TouchControlHeight - 2 * 9 : 22) },
+        { "radius_l", QString::number(8) },
+        { "radius", QString::number(touch ? 6 : 4) },
+        { "menu_pad", QString::number(touch ? 11 : 5) },
         { "menu_radius", QString::number(menu_radius) },
         { "menubar_pad_x", QString::number(touch ? 16 : 10) },
-        { "ind_round", QString::number((touch ? TouchIndicatorSize : 16) / 2) },
-        { "ind_r", QString::number(touch ? 6 : 4) },
-        { "ind", QString::number(touch ? TouchIndicatorSize : 16) },
+        { "ind_round", QString::number((touch ? TouchIndicatorSize : 18) / 2) },
+        { "ind_r", QString::number(4) },
+        { "ind", QString::number(touch ? TouchIndicatorSize : 18) },
         { "spin_w", QString::number(touch ? 32 : 22) },
         { "item_pad", QString::number(touch ? 9 : 3) },
         { "tab_h", QString::number(touch ? TouchControlHeight - 2 * 9 : 18) },
@@ -566,7 +572,7 @@ QPalette makeModernPalette()
     set_all(QPalette::ToolTipBase, s.base);
     set_all(QPalette::ToolTipText, s.text);
     set_all(QPalette::Highlight, s.accent);
-    set_all(QPalette::HighlightedText, Qt::white);
+    set_all(QPalette::HighlightedText, s.on_accent);
     set_all(QPalette::Link, s.accent_text);
     set_all(QPalette::LinkVisited, s.accent2);
     set_all(QPalette::BrightText, Qt::white);
@@ -734,114 +740,81 @@ int Theme::generation() noexcept
     return state().generation;
 }
 
-void Theme::drawItemCard(QPainter& painter, QStyleOptionViewItem const& option)
+void Theme::drawItemBackground(QPainter& painter, QStyleOptionViewItem const& option)
 {
     auto const& s = scheme();
-    auto const touch = isTouch();
     auto const selected = option.state.testFlag(QStyle::State_Selected);
     auto const hovered = option.state.testFlag(QStyle::State_MouseOver);
     auto const focused = option.state.testFlag(QStyle::State_HasFocus);
     auto const active = option.state.testFlag(QStyle::State_Active);
 
-    auto const gap_x = 8.0;
-    auto const gap_y = touch ? 5.0 : 4.0;
-    auto const radius = touch ? 14.0 : 11.0;
-    auto const rect = QRectF{ option.rect }.adjusted(gap_x + 0.5, gap_y + 0.5, -gap_x - 0.5, -gap_y - 0.5);
+    // Windows 11 list item: inset rounded fill, accent pill marks the selection
+    auto const rect = QRectF{ option.rect }.adjusted(4.5, 2.5, -4.5, -2.5);
+    auto constexpr Radius = 4.0;
 
     painter.save();
     painter.setRenderHint(QPainter::Antialiasing);
 
-    auto card = QPainterPath{};
-    card.addRoundedRect(rect, radius, radius);
+    auto fill = QColor{ Qt::transparent };
+    if (selected)
+    {
+        fill = s.accent_soft;
+        if (!active)
+        {
+            fill.setAlpha(fill.alpha() * 2 / 3);
+        }
+    }
+    else if (hovered)
+    {
+        fill = s.hover;
+    }
+
+    if (fill.alpha() > 0)
+    {
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(fill);
+        painter.drawRoundedRect(rect, Radius, Radius);
+    }
 
     if (selected)
     {
-        // soft glow around the selected card
-        for (int i = 3; i >= 1; --i)
-        {
-            auto glow_color = s.accent;
-            glow_color.setAlpha(active ? 22 : 10);
-            auto glow = QPainterPath{};
-            glow.addRoundedRect(rect.adjusted(-i, -i, i, i), radius + i, radius + i);
-            painter.fillPath(glow, glow_color);
-        }
-
-        auto gradient = QLinearGradient{ rect.topLeft(), rect.topRight() };
-        auto from = s.accent;
-        auto to = s.accent2;
-        if (!active)
-        {
-            from.setAlpha(190);
-            to.setAlpha(190);
-        }
-        gradient.setColorAt(0.0, from);
-        gradient.setColorAt(1.0, to);
-        painter.fillPath(card, gradient);
-
-        auto sheen = QLinearGradient{ rect.topLeft(), rect.bottomLeft() };
-        sheen.setColorAt(0.0, QColor{ 255, 255, 255, 40 });
-        sheen.setColorAt(0.5, QColor{ 255, 255, 255, 0 });
-        painter.fillPath(card, sheen);
-    }
-    else
-    {
-        painter.fillPath(card, s.base);
-
-        if (hovered)
-        {
-            painter.fillPath(card, s.hover);
-        }
-
-        painter.setPen(QPen{ hovered ? s.accent_border : s.border, 1.0 });
-        painter.drawPath(card);
+        auto const pill_height = std::min(16.0, rect.height() - 12.0);
+        auto const pill = QRectF{ rect.left(), rect.center().y() - pill_height / 2, 3.0, pill_height };
+        painter.setBrush(s.accent);
+        painter.drawRoundedRect(pill, 1.5, 1.5);
     }
 
-    if (focused)
+    // the selection pill already marks the usual case of a selected current item
+    if (focused && !selected)
     {
-        auto ring = selected ? QColor{ 255, 255, 255, 170 } : s.accent;
-        painter.setPen(QPen{ ring, 1.5 });
+        painter.setPen(QPen{ s.text, 1.0 });
         painter.setBrush(Qt::NoBrush);
-        painter.drawRoundedRect(rect.adjusted(1.5, 1.5, -1.5, -1.5), radius - 1.5, radius - 1.5);
+        painter.drawRoundedRect(rect, Radius, Radius);
     }
 
     painter.restore();
 }
 
-QBrush Theme::progressBrush(Bar bar, bool on_accent)
+QBrush Theme::progressBrush(Bar bar)
 {
-    if (on_accent)
-    {
-        return QColor{ 255, 255, 255, 235 };
-    }
-
     auto const& s = scheme();
-    auto gradient = QLinearGradient{ 0, 0, 1, 0 };
-    gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
 
     switch (bar)
     {
     case Bar::Downloading:
-        gradient.setColorAt(0.0, s.download_from);
-        gradient.setColorAt(1.0, s.download_to);
-        break;
+        return s.download;
 
     case Bar::Seeding:
-        gradient.setColorAt(0.0, s.seed_from);
-        gradient.setColorAt(1.0, s.seed_to);
-        break;
+        return s.seed;
 
-    case Bar::Idle:
-        gradient.setColorAt(0.0, s.idle_from);
-        gradient.setColorAt(1.0, s.idle_to);
-        break;
+    default:
+        return s.idle;
     }
-
-    return gradient;
 }
 
-QColor Theme::progressTrack(bool on_accent)
+QColor Theme::progressTrack()
 {
-    return on_accent ? QColor{ 255, 255, 255, 60 } : scheme().track;
+    return scheme().track;
 }
 
 QColor Theme::errorColor()

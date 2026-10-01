@@ -847,6 +847,35 @@ To add a new primary URL, add it after a blank line.</string>
       </attribute>
       <layout class="QVBoxLayout" name="desktopTabLayout">
        <item>
+        <widget class="QGroupBox" name="appearanceSection">
+         <property name="title">
+          <string>Appearance</string>
+         </property>
+         <layout class="QGridLayout" name="appearanceSectionLayout" columnstretch="0,1">
+          <item row="0" column="0">
+           <widget class="QLabel" name="themeLabel">
+            <property name="text">
+             <string>T&amp;heme:</string>
+            </property>
+            <property name="buddy">
+             <cstring>themeCombo</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="themeCombo"/>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="touchModeCheck">
+            <property name="text">
+             <string>Touch-friendly &amp;layout with larger controls</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="desktopSection">
          <property name="title">
           <string>Desktop</string>
@@ -863,6 +892,13 @@ To add a new primary URL, add it after a blank line.</string>
            <widget class="QCheckBox" name="startMinimizedCheck">
             <property name="text">
              <string>Start &amp;minimized in notification area</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="singleInstanceCheck">
+            <property name="text">
+             <string>Allow only &amp;one running instance</string>
             </property>
            </widget>
           </item>

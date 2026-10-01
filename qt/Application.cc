@@ -491,6 +491,12 @@ void Application::raise() const
     alert(window_.get());
 }
 
+// restores the main window from the tray or taskbar and brings it to the front
+void Application::presentWindow() const
+{
+    window_->present();
+}
+
 bool Application::notifyApp(QString const& title, QString const& body, QStringList const& actions) const
 {
 #ifdef QT_DBUS_LIB

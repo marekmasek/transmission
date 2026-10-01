@@ -151,23 +151,11 @@ QSize TorrentDelegate::margin(QStyle const& style) const
 {
     Q_UNUSED(style)
 
-    if (Theme::isModern())
-    {
-        // room for the card drawn by Theme::drawItemCard() plus its padding
-        return Theme::isTouch() ? QSize{ 22, 17 } : QSize{ 19, 13 };
-    }
-
     return Theme::isTouch() ? QSize{ 8, 10 } : QSize{ 4, 4 };
 }
 
 void TorrentDelegate::drawBackground(QPainter* painter, QStyleOptionViewItem const& option) const
 {
-    if (Theme::isModern())
-    {
-        Theme::drawItemCard(*painter, option);
-        return;
-    }
-
     if ((option.state & QStyle::State_Selected) == 0)
     {
         return;
@@ -189,7 +177,7 @@ QColor TorrentDelegate::textColor(QStyleOptionViewItem const& option, Torrent co
 
     if (tor.hasError() && !is_item_selected)
     {
-        return Theme::isModern() ? Theme::errorColor() : QColor{ Qt::GlobalColor::red };
+        return QColor{ Qt::GlobalColor::red };
     }
 
     auto const color_group = (option.state & QStyle::State_Active) != 0 ? QPalette::Normal : QPalette::Inactive;
@@ -197,20 +185,9 @@ QColor TorrentDelegate::textColor(QStyleOptionViewItem const& option, Torrent co
     return option.palette.color(color_group, color_role);
 }
 
-void TorrentDelegate::setProgressBarColors(Torrent const& tor, bool const is_item_selected) const
+void TorrentDelegate::setProgressBarColors(Torrent const& tor) const
 {
     auto& palette = progress_bar_style_.palette;
-
-    if (Theme::isModern())
-    {
-        auto const bar = tor.isDownloading() ? Theme::Bar::Downloading :
-            tor.isSeeding()                  ? Theme::Bar::Seeding :
-                                               Theme::Bar::Idle;
-        palette.setBrush(QPalette::Highlight, Theme::progressBrush(bar, is_item_selected));
-        palette.setColor(QPalette::Base, Theme::progressTrack(is_item_selected));
-        palette.setColor(QPalette::Window, Theme::progressTrack(is_item_selected));
-        return;
-    }
 
     if (tor.isDownloading())
     {
@@ -621,7 +598,7 @@ void TorrentDelegate::drawTorrent(QPainter* painter, QStyleOptionViewItem const&
     painter->drawText(layout.progress_rect, Qt::AlignLeft | Qt::AlignVCenter, layout.progressText());
     progress_bar_style_.rect = layout.bar_rect;
 
-    setProgressBarColors(tor, is_item_selected);
+    setProgressBarColors(tor);
 
     progress_bar_style_.state = progress_bar_state;
     setProgressBarPercentDone(option, tor);

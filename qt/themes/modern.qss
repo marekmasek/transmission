@@ -1,7 +1,7 @@
 /*
- * Modern theme stylesheet.
- * Theme.cc replaces each @token@ with a color of the active light/dark
- * scheme or with a metric of the active (normal/touch) density.
+ * Modern theme stylesheet, modelled on Windows 11 (Fluent) controls.
+ * Theme.cc replaces each @token@ with a color or image of the active
+ * light/dark scheme or with a metric of the active (normal/touch) density.
  */
 
 QMainWindow, QDialog {
@@ -21,20 +21,16 @@ QMenuBar::item {
     border-radius: @radius@px;
 }
 
-QMenuBar::item:selected {
+QMenuBar::item:selected,
+QMenuBar::item:pressed {
     background: @hover@;
 }
 
-QMenuBar::item:pressed {
-    background: @accent_soft@;
-    color: @accent_text@;
-}
-
 QMenu {
-    background: @base@;
+    background: @surface@;
     border: 1px solid @border@;
     border-radius: @menu_radius@px;
-    padding: 6px;
+    padding: 4px;
 }
 
 QMenu::item {
@@ -44,19 +40,17 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 @accent@, stop: 1 @accent2@);
-    color: #ffffff;
+    background: @hover@;
 }
 
 QMenu::item:disabled {
     color: @muted@;
-    background: transparent;
 }
 
 QMenu::separator {
     height: 1px;
     background: @border@;
-    margin: 6px 8px;
+    margin: 4px 0;
 }
 
 QMenu::icon {
@@ -69,68 +63,70 @@ QMenu::indicator {
     padding-left: 6px;
 }
 
-QMenu::indicator:non-exclusive:checked {
-    image: url(:/themes/check-accent.svg);
+QMenu::indicator:checked {
+    image: url(@menu_check@);
 }
 
-QMenu::indicator:non-exclusive:checked:selected {
-    image: url(:/themes/check.svg);
-}
-
-QMenu::indicator:exclusive:checked {
-    image: url(:/themes/dot-accent.svg);
-}
-
-QMenu::indicator:exclusive:checked:selected {
-    image: url(:/themes/dot.svg);
-}
-
-/* ---- tool bar and status bar ---- */
+/* ---- command bar (tool bar) and status bar ---- */
 
 QToolBar {
     background: @window@;
     border: none;
-    border-bottom: 2px solid;
-    border-bottom-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 @accent@, stop: 1 @accent2@);
     padding: @pad_s@px 8px;
-    spacing: 4px;
+    spacing: 2px;
 }
 
 QToolBar::separator {
     background: @border@;
     width: 1px;
-    margin: 6px 6px;
+    margin: 8px 6px;
 }
 
 QToolButton {
     background: transparent;
     border: 1px solid transparent;
     border-radius: @radius@px;
-    padding: @pad_s@px;
+    padding: @pad_s@px 8px;
 }
 
 QToolButton:hover {
     background: @hover@;
-    border-color: @border@;
 }
 
 QToolButton:pressed,
 QToolButton:checked {
-    background: @accent_soft@;
-    border-color: @accent_border@;
+    background: @hover@;
+    color: @muted@;
 }
 
 QToolButton:focus {
-    border-color: @accent@;
+    border-color: @text@;
+}
+
+QToolButton:disabled {
+    color: @muted@;
 }
 
 QToolButton::menu-indicator {
     image: none;
 }
 
+QToolButton#primaryAction {
+    background: @accent@;
+    color: @on_accent@;
+    border-color: @accent@;
+    padding-left: 10px;
+    padding-right: 12px;
+}
+
+QToolButton#primaryAction:hover {
+    background: @accent2@;
+}
+
 QStatusBar {
     background: @window@;
     border-top: 1px solid @border@;
+    color: @muted@;
 }
 
 QStatusBar::item {
@@ -142,34 +138,32 @@ QStatusBar::item {
 QPushButton {
     background: @button@;
     border: 1px solid @border@;
+    border-bottom-color: @border_strong@;
     border-radius: @radius@px;
     padding: @pad_s@px 16px;
     min-height: @ctl_h@px;
 }
 
 QPushButton:hover {
-    border-color: @accent_border@;
     background: @hover_solid@;
 }
 
-QPushButton:pressed,
-QPushButton:checked {
-    background: @accent_soft@;
-    border-color: @accent@;
+QPushButton:pressed {
+    color: @muted@;
 }
 
 QPushButton:focus {
-    border: 1px solid @accent@;
+    border: 1px solid @text@;
 }
 
 QPushButton:default {
-    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 @accent@, stop: 1 @accent2@);
+    background: @accent@;
     border: 1px solid @accent@;
-    color: #ffffff;
+    color: @on_accent@;
 }
 
 QPushButton:default:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 @accent2@, stop: 1 @accent@);
+    background: @accent2@;
 }
 
 QPushButton:disabled {
@@ -192,8 +186,8 @@ QAbstractItemView::indicator,
 QGroupBox::indicator {
     width: @ind@px;
     height: @ind@px;
-    background: @base@;
-    border: 1.5px solid @border_strong@;
+    background: @alt_base@;
+    border: 1px solid @border_strong@;
     border-radius: @ind_r@px;
 }
 
@@ -203,9 +197,8 @@ QRadioButton::indicator {
 
 QCheckBox::indicator:hover,
 QRadioButton::indicator:hover,
-QAbstractItemView::indicator:hover,
-QGroupBox::indicator:hover {
-    border-color: @accent@;
+QAbstractItemView::indicator:hover {
+    background: @hover_solid@;
 }
 
 QCheckBox::indicator:checked,
@@ -213,20 +206,20 @@ QAbstractItemView::indicator:checked,
 QGroupBox::indicator:checked {
     background: @accent@;
     border-color: @accent@;
-    image: url(:/themes/check.svg);
+    image: url(@check@);
 }
 
 QCheckBox::indicator:indeterminate,
 QAbstractItemView::indicator:indeterminate {
     background: @accent@;
     border-color: @accent@;
-    image: url(:/themes/dash.svg);
+    image: url(@dash@);
 }
 
 QRadioButton::indicator:checked {
     background: @accent@;
     border-color: @accent@;
-    image: url(:/themes/dot.svg);
+    image: url(@dot@);
 }
 
 QCheckBox::indicator:disabled,
@@ -245,6 +238,7 @@ QPlainTextEdit,
 QTextEdit {
     background: @base@;
     border: 1px solid @border@;
+    border-bottom-color: @border_strong@;
     border-radius: @radius@px;
     padding: @pad_s@px 8px;
 }
@@ -257,24 +251,25 @@ QComboBox {
 
 QLineEdit:hover,
 QAbstractSpinBox:hover,
-QComboBox:hover,
-QPlainTextEdit:hover,
-QTextEdit:hover {
-    border-color: @border_strong@;
+QComboBox:hover {
+    background: @hover_solid@;
 }
 
+/* Windows 11 marks the focused field with an accent underline */
 QLineEdit:focus,
 QAbstractSpinBox:focus,
 QComboBox:focus,
 QPlainTextEdit:focus,
 QTextEdit:focus {
-    border-color: @accent@;
+    background: @base@;
+    border-bottom: 2px solid @accent@;
 }
 
 QLineEdit:disabled,
 QAbstractSpinBox:disabled,
 QComboBox:disabled {
     background: @window@;
+    color: @muted@;
 }
 
 QAbstractSpinBox {
@@ -291,12 +286,10 @@ QAbstractSpinBox::down-button {
 
 QAbstractSpinBox::up-button {
     subcontrol-position: top right;
-    border-top-right-radius: @radius@px;
 }
 
 QAbstractSpinBox::down-button {
     subcontrol-position: bottom right;
-    border-bottom-right-radius: @radius@px;
 }
 
 QAbstractSpinBox::up-button:hover,
@@ -334,7 +327,7 @@ QComboBox::down-arrow {
 }
 
 QComboBox QAbstractItemView {
-    background: @base@;
+    background: @surface@;
     border: 1px solid @border@;
     padding: 4px;
     outline: 0;
@@ -343,10 +336,10 @@ QComboBox QAbstractItemView {
 /* ---- item views ---- */
 
 QAbstractItemView {
-    background: @base@;
+    background: @surface@;
     alternate-background-color: @alt_base@;
     border: 1px solid @border@;
-    border-radius: @radius@px;
+    border-radius: @radius_l@px;
     outline: 0;
 }
 
@@ -366,18 +359,24 @@ QTableView::item:hover {
 QTreeView::item:selected,
 QListView::item:selected,
 QTableView::item:selected {
-    background: @accent@;
-    color: #ffffff;
+    background: @accent_soft@;
+    color: @text@;
 }
 
 QTreeView::branch:selected {
-    background: @accent@;
+    background: @accent_soft@;
 }
 
-/* the torrent list paints its own cards on the window background */
+/* the torrent list paints its own rows on a raised content surface */
 TorrentView {
-    background: @window@;
-    border: none;
+    background: @surface@;
+    border: 1px solid @border@;
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: @radius_l@px;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 TorrentView::item,
@@ -387,23 +386,53 @@ TorrentView::item:selected {
     padding: 0;
 }
 
+/* status and tracker filters beside the torrent list */
+#filterSidebar {
+    background: @window@;
+}
+
+#filterSidebar QLabel {
+    color: @muted@;
+    font-weight: 600;
+    padding: 12px 10px 4px 10px;
+}
+
+#filterSidebar QListView {
+    background: transparent;
+    border: none;
+}
+
+#filterSidebar QListView::item {
+    padding: @nav_pad@px 8px;
+    margin: 1px 0;
+    border-radius: @radius@px;
+    color: @text@;
+}
+
+#filterSidebar QListView::item:hover {
+    background: @hover@;
+}
+
+#filterSidebar QListView::item:selected {
+    background: @hover@;
+    color: @text@;
+}
+
 QHeaderView {
-    background: @base@;
+    background: transparent;
     border: none;
 }
 
 QHeaderView::section {
-    background: @base@;
+    background: transparent;
     color: @muted@;
     border: none;
     border-bottom: 1px solid @border@;
     padding: @pad_s@px 8px;
-    font-weight: 600;
 }
 
 QHeaderView::section:hover {
     background: @hover@;
-    color: @text@;
 }
 
 /* ---- scroll bars ---- */
@@ -457,7 +486,7 @@ QAbstractScrollArea::corner {
 /* ---- tabs and group boxes ---- */
 
 QTabWidget::pane {
-    background: @base@;
+    background: @surface@;
     border: 1px solid @border@;
     border-radius: @radius_l@px;
     padding: 8px;
@@ -466,26 +495,20 @@ QTabWidget::pane {
 QTabBar::tab {
     background: transparent;
     color: @muted@;
-    border: 1px solid transparent;
-    border-radius: @radius@px;
-    padding: @pad_s@px 14px;
-    margin: 0 2px 6px 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: @pad_s@px 12px;
+    margin: 0 4px 4px 0;
     min-height: @tab_h@px;
 }
 
 QTabBar::tab:hover {
-    background: @hover@;
     color: @text@;
 }
 
 QTabBar::tab:selected {
-    background: @accent_soft@;
-    border-color: @accent_border@;
-    color: @accent_text@;
-}
-
-QTabBar::tab:focus {
-    border-color: @accent@;
+    color: @text@;
+    border-bottom-color: @accent@;
 }
 
 QGroupBox {
@@ -499,9 +522,8 @@ QGroupBox {
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    left: 12px;
+    left: 10px;
     padding: 0 4px;
-    color: @accent_text@;
     font-weight: 600;
 }
 
@@ -510,16 +532,16 @@ QGroupBox::title {
 QProgressBar {
     background: @track@;
     border: none;
-    border-radius: 5px;
-    min-height: 10px;
-    max-height: 10px;
+    border-radius: 2px;
+    min-height: 4px;
+    max-height: 4px;
     text-align: center;
     color: transparent;
 }
 
 QProgressBar::chunk {
-    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 @accent@, stop: 1 @accent2@);
-    border-radius: 5px;
+    background: @accent@;
+    border-radius: 2px;
 }
 
 QSplitter::handle {
@@ -527,10 +549,10 @@ QSplitter::handle {
 }
 
 QToolTip {
-    background: @base@;
+    background: @surface@;
     color: @text@;
     border: 1px solid @border@;
-    border-radius: 6px;
+    border-radius: 4px;
     padding: 6px 8px;
 }
 

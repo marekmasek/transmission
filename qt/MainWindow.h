@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <ctime>
 #include <memory>
+#include <utility>
+#include <vector>
 
 #include <QMainWindow>
 #include <QNetworkReply>
@@ -26,12 +28,14 @@
 
 class QAction;
 class QIcon;
+class QLineEdit;
 class QMenu;
 class QToolButton;
 
 class AboutDialog;
 class AddData;
 class DetailsDialog;
+class FilterBar;
 class Prefs;
 class PrefsDialog;
 class Session;
@@ -39,6 +43,7 @@ class SessionDialog;
 class StatsDialog;
 class TorrentDelegate;
 class TorrentDelegateMin;
+class TorrentDelegateRow;
 class TorrentModel;
 
 extern "C"
@@ -57,6 +62,12 @@ public:
     MainWindow(MainWindow const&) = delete;
     MainWindow& operator=(MainWindow&&) = delete;
     MainWindow& operator=(MainWindow const&) = delete;
+
+    // shows the window, even when hidden in the tray or minimized, and focuses it
+    void present()
+    {
+        toggleWindows(true);
+    }
 
     [[nodiscard]] constexpr QSystemTrayIcon& trayIcon() noexcept
     {
@@ -161,11 +172,15 @@ private:
     TorrentFilter filter_model_;
     TorrentDelegate* torrent_delegate_ = {};
     TorrentDelegateMin* torrent_delegate_min_ = {};
+    TorrentDelegateRow* torrent_delegate_row_ = {};
+    TorrentDelegateRow* torrent_delegate_row_compact_ = {};
     time_t last_send_time_ = {};
     time_t last_read_time_ = {};
     QTimer network_timer_;
     bool network_error_ = {};
     QAction* show_menubar_action_ = {};
+    QAction* touch_mode_action_ = {};
+    QList<QAction*> theme_actions_;
     QAction* app_menu_spacer_action_ = {};
     QAction* app_menu_action_ = {};
     QToolButton* app_menu_button_ = {};
@@ -176,7 +191,11 @@ private:
     QAction* ratio_off_action_ = {};
     QAction* ratio_on_action_ = {};
     QWidgetList hidden_;
-    QWidget* filter_bar_ = {};
+    FilterBar* filter_bar_ = {};
+    QWidget* sidebar_ = {};
+    QLineEdit* search_edit_ = {};
+    QAction* search_action_ = {};
+    std::vector<std::pair<QAction*, QAction::Priority>> toolbar_priorities_;
     QAction* alt_speed_action_ = {};
     QString error_message_;
     bool auto_add_clipboard_links_ = {};
@@ -208,6 +227,8 @@ private:
     void refreshTitle();
     void refreshTorrentViewHeader();
     void refreshControlSizes();
-    void refreshMenuBar();
+    void refreshChrome();
+    void refreshListDelegate();
+    void onSortRequested(SortMode mode);
     void refreshTrayIcon(TransferStats const& stats);
 };

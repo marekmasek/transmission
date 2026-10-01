@@ -96,6 +96,8 @@ target_sources(${TR_NAME}-qt-lib
         TorrentDelegate.h
         TorrentDelegateMin.cc
         TorrentDelegateMin.h
+        TorrentDelegateRow.cc
+        TorrentDelegateRow.h
         TorrentFilter.cc
         TorrentFilter.h
         TorrentModel.cc

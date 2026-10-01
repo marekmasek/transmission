@@ -73,6 +73,7 @@ private:
     void initComboFromItems(std::array<std::pair<QString, T>, N> const& items, QComboBox* w, tr_quark key);
 
     void initAltSpeedDaysCombo(QComboBox* w, tr_quark key);
+    void initThemeCombo(QComboBox* w, tr_quark key);
     void initEncryptionCombo(QComboBox* w, tr_quark key);
     void initWidget(FreeSpaceLabel* w, tr_quark key);
     void initWidget(PathButton* w, tr_quark key);

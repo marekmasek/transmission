@@ -31,6 +31,18 @@ QVariant DBusInteropHelper::addMetainfo(QString const& metainfo) const
     return response.isValid() ? QVariant{ response.value() } : QVariant{};
 }
 
+QVariant DBusInteropHelper::presentWindow() const
+{
+    auto const request = QDBusMessage::createMethodCall(
+        QStringLiteral("com.transmissionbt.Transmission"),
+        QStringLiteral("/com/transmissionbt/Transmission"),
+        QStringLiteral("com.transmissionbt.Transmission"),
+        QStringLiteral("PresentWindow"));
+
+    QDBusReply<bool> const response = QDBusConnection::sessionBus().call(request);
+    return response.isValid() ? QVariant{ response.value() } : QVariant{};
+}
+
 void DBusInteropHelper::registerObject(QObject* parent)
 {
     auto bus = QDBusConnection::sessionBus();

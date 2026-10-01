@@ -285,6 +285,12 @@ int tr_main(int argc, char** argv)
         prefs.set(TR_KEY_remote_session_password, password);
     }
 
+    // with a single instance allowed, a second launch just shows the first one
+    if (prefs.get<bool>(TR_KEY_single_instance) && InteropHelper{}.presentWindow())
+    {
+        return 0;
+    }
+
     if (!host.isNull() || !port.isNull() || !username.isNull() || !password.isNull())
     {
         prefs.set(TR_KEY_remote_session_enabled, true);

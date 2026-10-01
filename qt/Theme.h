@@ -56,8 +56,8 @@ public:
     [[nodiscard]] static int generation() noexcept;
 
     // Modern-theme painting helpers for custom delegates.
-    static void drawItemCard(QPainter& painter, QStyleOptionViewItem const& option);
-    [[nodiscard]] static QBrush progressBrush(Bar bar, bool on_accent);
-    [[nodiscard]] static QColor progressTrack(bool on_accent);
+    static void drawItemBackground(QPainter& painter, QStyleOptionViewItem const& option);
+    [[nodiscard]] static QBrush progressBrush(Bar bar);
+    [[nodiscard]] static QColor progressTrack();
     [[nodiscard]] static QColor errorColor();
 };

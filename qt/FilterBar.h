@@ -37,6 +37,21 @@ public:
     FilterBar& operator=(FilterBar&&) = delete;
     FilterBar& operator=(FilterBar const&) = delete;
 
+    // Status and tracker filters as a vertical navigation list, for the
+    // Modern theme. It drives the same filters as this bar's combo boxes.
+    QWidget* createSidebar(QWidget* parent);
+
+    void focusSearch();
+
+    // call when the theme changes the sidebar's row heights
+    void refreshSidebarMetrics()
+    {
+        emit sidebarMetricsChanged();
+    }
+
+signals:
+    void sidebarMetricsChanged();
+
 public slots:
     void clear();
 
