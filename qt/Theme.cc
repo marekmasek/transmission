@@ -12,7 +12,6 @@
 #include <QContextMenuEvent>
 #include <QFile>
 #include <QFontDatabase>
-#include <QGestureEvent>
 #include <QItemSelectionModel>
 #include <QLinearGradient>
 #include <QMenu>
@@ -21,13 +20,22 @@
 #include <QPainterPath>
 #include <QProxyStyle>
 #include <QScrollArea>
-#include <QScroller>
 #include <QStyleFactory>
 #include <QStyleOptionMenuItem>
 #include <QStyleOptionToolButton>
 #include <QStyleOptionViewItem>
-#include <QTapAndHoldGesture>
 #include <QWidget>
+#include <QtWidgets/qtwidgetsglobal.h>
+
+// Some Qt builds, such as the one Transmission ships on Windows, can leave out
+// kinetic scrolling and gestures; touch input then falls back to Qt's defaults.
+#if QT_CONFIG(scroller)
+#include <QScroller>
+#endif
+#if QT_CONFIG(gestures)
+#include <QGestureEvent>
+#include <QTapAndHoldGesture>
+#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
@@ -239,6 +247,7 @@ public:
             view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         }
 
+#if QT_CONFIG(scroller)
         QScroller::grabGesture(viewport, QScroller::TouchGesture);
         auto* const scroller = QScroller::scroller(viewport);
         auto props = scroller->scrollerProperties();
@@ -250,8 +259,11 @@ public:
             QScrollerProperties::VerticalOvershootPolicy,
             QVariant::fromValue(QScrollerProperties::OvershootWhenScrollable));
         scroller->setScrollerProperties(props);
+#endif
 
+#if QT_CONFIG(gestures)
         viewport->grabGesture(Qt::TapAndHoldGesture);
+#endif
         viewport->installEventFilter(this);
     }
 
@@ -281,8 +293,10 @@ protected:
             last_press_was_touch_ = !isRealMouse(static_cast<QMouseEvent const*>(event));
             break;
 
+#if QT_CONFIG(gestures)
         case QEvent::Gesture:
             return onGesture(static_cast<QWidget*>(object), static_cast<QGestureEvent*>(event));
+#endif
 
         default:
             break;
@@ -304,6 +318,7 @@ private:
 #endif
     }
 
+#if QT_CONFIG(gestures)
     // Press-and-hold with a finger opens the context menu, as right-click does.
     bool onGesture(QWidget* viewport, QGestureEvent* event) const
     {
@@ -313,11 +328,13 @@ private:
             return false;
         }
 
+#if QT_CONFIG(scroller)
         if (auto const scroller_state = QScroller::scroller(viewport)->state();
             scroller_state == QScroller::Dragging || scroller_state == QScroller::Scrolling)
         {
             return false;
         }
+#endif
 
         auto const global_pos = gesture->position().toPoint();
         auto const local_pos = viewport->mapFromGlobal(global_pos);
@@ -336,6 +353,7 @@ private:
         event->accept(gesture);
         return true;
     }
+#endif
 
     bool last_press_was_touch_ = false;
 };
