@@ -233,6 +233,9 @@ target_compile_definitions(${TR_NAME}-qt-lib
     PRIVATE
         "TRANSLATIONS_DIR=\"${CMAKE_INSTALL_FULL_DATADIR}/${TR_NAME}/translations\""
         QT_NO_CAST_FROM_ASCII
+    # public: InteropHelper.h changes its members with these, and main.cc,
+    # outside this library, must see the same InteropHelper layout
+    PUBLIC
         $<$<BOOL:${ENABLE_QT_COM_INTEROP}>:ENABLE_COM_INTEROP>
         $<$<BOOL:${ENABLE_QT_DBUS_INTEROP}>:ENABLE_DBUS_INTEROP>)
 
