@@ -1774,6 +1774,9 @@ void MainWindow::initAppMenu()
         toolbar_priorities_.emplace_back(action, action->priority());
     }
 
+    open_menu_ = new QMenu{ this };
+    open_menu_->addAction(ui_.action_AddURL);
+
     app_menu_button_ = new QToolButton{ ui_.toolBar };
     app_menu_button_->setText(tr("Menu"));
     app_menu_button_->setToolTip(tr("Menu (F10)"));
@@ -1861,6 +1864,23 @@ void MainWindow::refreshChrome()
     for (auto const& [action, priority] : toolbar_priorities_)
     {
         action->setPriority(modern ? QAction::NormalPriority : priority);
+    }
+
+    // Modern folds Open URL into a drop-down on the Open button
+    if (auto const url_in_toolbar = ui_.toolBar->actions().contains(ui_.action_AddURL); modern && url_in_toolbar)
+    {
+        ui_.toolBar->removeAction(ui_.action_AddURL);
+    }
+    else if (!modern && !url_in_toolbar)
+    {
+        ui_.toolBar->insertAction(ui_.action_Start, ui_.action_AddURL);
+    }
+
+    if (auto* const open_button = qobject_cast<QToolButton*>(ui_.toolBar->widgetForAction(ui_.action_OpenFile));
+        open_button != nullptr)
+    {
+        open_button->setMenu(modern ? open_menu_ : nullptr);
+        open_button->setPopupMode(modern ? QToolButton::MenuButtonPopup : QToolButton::DelayedPopup);
     }
 }
 

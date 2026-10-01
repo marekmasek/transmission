@@ -183,6 +183,7 @@ private:
     QList<QAction*> theme_actions_;
     QAction* app_menu_spacer_action_ = {};
     QAction* app_menu_action_ = {};
+    QMenu* open_menu_ = {};
     QToolButton* app_menu_button_ = {};
     QAction* dlimit_off_action_ = {};
     QAction* dlimit_on_action_ = {};

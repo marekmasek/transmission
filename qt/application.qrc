@@ -13,6 +13,8 @@
       <file alias="check-black.svg">themes/check-black.svg</file>
       <file alias="check-text-light.svg">themes/check-text-light.svg</file>
       <file alias="chevron-down.svg">themes/chevron-down.svg</file>
+      <file alias="chevron-down-black.svg">themes/chevron-down-black.svg</file>
+      <file alias="chevron-down-white.svg">themes/chevron-down-white.svg</file>
       <file alias="chevron-up.svg">themes/chevron-up.svg</file>
       <file alias="dash.svg">themes/dash.svg</file>
       <file alias="dash-black.svg">themes/dash-black.svg</file>

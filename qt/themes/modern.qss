@@ -123,6 +123,29 @@ QToolButton#primaryAction:hover {
     background: @accent2@;
 }
 
+/* split button: the arrow part drops down the other ways to add a torrent */
+QToolButton#primaryAction[popupMode="1"] {
+    padding-right: @split_w@px;
+}
+
+QToolButton#primaryAction::menu-button {
+    border: none;
+    border-left: 1px solid @on_accent_line@;
+    border-top-right-radius: @radius@px;
+    border-bottom-right-radius: @radius@px;
+    width: @split_w@px;
+}
+
+QToolButton#primaryAction::menu-button:hover {
+    background: @accent2@;
+}
+
+QToolButton#primaryAction::menu-arrow {
+    image: url(@on_accent_chevron@);
+    width: 10px;
+    height: 10px;
+}
+
 QStatusBar {
     background: @window@;
     border-top: 1px solid @border@;
