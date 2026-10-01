@@ -22,7 +22,7 @@ namespace
 class TintedSvgEngine : public QIconEngine
 {
 public:
-    TintedSvgEngine(QString path, QPalette::ColorRole role, std::optional<QColor> color, QString on_path = {})
+    TintedSvgEngine(QString path, QPalette::ColorRole role, std::optional<QRgb> color, QString on_path = {})
         : path_{ std::move(path) }
         , on_path_{ std::move(on_path) }
         , role_{ role }
@@ -86,13 +86,13 @@ private:
             return palette.color(QPalette::Disabled, QPalette::WindowText);
         }
 
-        return color_ ? *color_ : palette.color(QPalette::Active, role_);
+        return color_ ? QColor::fromRgba(*color_) : palette.color(QPalette::Active, role_);
     }
 
     QString const path_;
     QString const on_path_;
     QPalette::ColorRole const role_;
-    std::optional<QColor> const color_;
+    std::optional<QRgb> const color_;
 };
 
 [[nodiscard]] QString resourcePath(QString const& name)
@@ -112,7 +112,7 @@ QIcon icon(QString const& name, QPalette::ColorRole role)
 
 QIcon icon(QString const& name, QColor const& color)
 {
-    return QIcon{ new TintedSvgEngine{ resourcePath(name), QPalette::WindowText, color } };
+    return QIcon{ new TintedSvgEngine{ resourcePath(name), QPalette::WindowText, color.rgba() } };
 }
 
 QIcon toggleIcon(QString const& off_name, QString const& on_name)
