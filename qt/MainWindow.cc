@@ -15,7 +15,10 @@
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
+#include <QMenu>
 #include <QPainter>
+#include <QShortcut>
+#include <QToolButton>
 #include <QtGui>
 
 #include <libtransmission/transmission.h>
@@ -43,6 +46,7 @@
 #include "TorrentDelegate.h"
 #include "TorrentDelegateMin.h"
 #include "TorrentFilter.h"
+#include "Theme.h"
 #include "TorrentModel.h"
 #include "Utils.h"
 
@@ -70,7 +74,8 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     qApp->setAttribute(Qt::ApplicationAttribute::AA_DontShowIconsInMenus, false);
 
     ui_.setupUi(this);
-    refreshToolbarIconSize();
+    initAppMenu();
+    refreshControlSizes();
 
     ui_.listView->setAttribute(Qt::WA_MacShowFocusRect, false);
 
@@ -199,7 +204,7 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     connect(&filter_model_, &TorrentFilter::rowsRemoved, this, refresh_header_soon);
     connect(ui_.listView, &TorrentView::headerDoubleClicked, filter_bar, &FilterBar::clear);
 
-    static std::array<tr_quark, 17> constexpr InitKeys = {
+    static std::array<tr_quark, 18> constexpr InitKeys = {
         TR_KEY_alt_speed_enabled, //
         TR_KEY_compact_view, //
         TR_KEY_speed_limit_down, //
@@ -215,6 +220,7 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
         TR_KEY_show_statusbar, //
         TR_KEY_statusbar_stats, //
         TR_KEY_show_toolbar, //
+        TR_KEY_show_menubar, //
         TR_KEY_speed_limit_up, //
         TR_KEY_speed_limit_up_enabled, //
     };
@@ -1175,6 +1181,12 @@ void MainWindow::refreshPref(tr_quark const key)
         b = prefs_.get<bool>(key);
         ui_.toolBar->setVisible(b);
         ui_.action_Toolbar->setChecked(b);
+        refreshMenuBar();
+        break;
+
+    case TR_KEY_show_menubar:
+        show_menubar_action_->setChecked(prefs_.get<bool>(key));
+        refreshMenuBar();
         break;
 
     case TR_KEY_show_notification_area_icon:
@@ -1609,7 +1621,8 @@ bool MainWindow::event(QEvent* e)
         break;
 
     case QEvent::StyleChange:
-        refreshToolbarIconSize();
+        refreshControlSizes();
+        refreshMenuBar();
         break;
 
     default:
@@ -1619,12 +1632,81 @@ bool MainWindow::event(QEvent* e)
     return QMainWindow::event(e);
 }
 
-// the .ui file pins the icon size, so follow the theme's metric by hand
-void MainWindow::refreshToolbarIconSize()
+// The Modern theme replaces the menu bar with a menu button at the end of
+// the tool bar: menu bar items are too small to tap and look dated.
+void MainWindow::initAppMenu()
+{
+    show_menubar_action_ = new QAction{ tr("&Menu Bar"), this };
+    show_menubar_action_->setCheckable(true);
+    ui_.menu_View->insertAction(ui_.action_Toolbar, show_menubar_action_);
+    connect(show_menubar_action_, &QAction::toggled, this, [this](bool visible) { prefs_.set(TR_KEY_show_menubar, visible); });
+
+    auto* const menu = new QMenu{ this };
+    for (auto* const menubar_action : ui_.menubar->actions())
+    {
+        menu->addAction(menubar_action);
+
+        // keep shortcuts working while the menu bar is hidden
+        if (auto* const submenu = menubar_action->menu(); submenu != nullptr)
+        {
+            addActions(submenu->actions());
+        }
+    }
+
+    auto* const spacer = new QWidget{ ui_.toolBar };
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    app_menu_spacer_action_ = ui_.toolBar->addWidget(spacer);
+
+    app_menu_button_ = new QToolButton{ ui_.toolBar };
+    app_menu_button_->setText(tr("Menu"));
+    app_menu_button_->setToolTip(tr("Menu (F10)"));
+    app_menu_button_->setIcon(QIcon{ QStringLiteral(":/icons/hamburger-menu.svg") });
+    app_menu_button_->setMenu(menu);
+    app_menu_button_->setPopupMode(QToolButton::InstantPopup);
+    app_menu_button_->setToolButtonStyle(Qt::ToolButtonFollowStyle);
+    app_menu_action_ = ui_.toolBar->addWidget(app_menu_button_);
+
+    auto* const shortcut = new QShortcut{ QKeySequence{ Qt::Key_F10 }, this };
+    connect(
+        shortcut,
+        &QShortcut::activated,
+        this,
+        [this]()
+        {
+            if (app_menu_button_->isVisible())
+            {
+                app_menu_button_->showMenu();
+            }
+            else if (auto const actions = ui_.menubar->actions(); !actions.isEmpty())
+            {
+                ui_.menubar->setActiveAction(actions.front());
+            }
+        });
+}
+
+void MainWindow::refreshMenuBar()
+{
+    // never leave the window without a visible way to reach the menus
+    auto const use_app_menu = Theme::isModern() && !prefs_.get<bool>(TR_KEY_show_menubar) &&
+        prefs_.get<bool>(TR_KEY_show_toolbar);
+
+    ui_.menubar->setVisible(!use_app_menu);
+    app_menu_spacer_action_->setVisible(use_app_menu);
+    app_menu_action_->setVisible(use_app_menu);
+}
+
+// the .ui file pins the icon sizes, so follow the theme's metrics by hand
+void MainWindow::refreshControlSizes()
 {
     if (auto const size = style()->pixelMetric(QStyle::PM_ToolBarIconSize, nullptr, ui_.toolBar); size > 0)
     {
         ui_.toolBar->setIconSize({ size, size });
+    }
+
+    auto const status_icon_size = Theme::isTouch() ? 24 : 16;
+    for (auto* const button : { ui_.optionsButton, ui_.altSpeedButton, ui_.statsModeButton })
+    {
+        button->setIconSize({ status_icon_size, status_icon_size });
     }
 }
 

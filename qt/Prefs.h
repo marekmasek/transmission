@@ -172,6 +172,7 @@ private:
     bool sort_reversed_ = false;
     bool compact_view_ = false;
     bool filterbar_ = true;
+    bool menubar_ = false;
     bool statusbar_ = true;
     StatsMode statusbar_stats_ = DefaultStatsMode;
     bool show_tracker_scrapes_ = false;
@@ -276,6 +277,7 @@ public:
         Field<&Prefs::sort_reversed_>{ TR_KEY_sort_reversed },
         Field<&Prefs::compact_view_>{ TR_KEY_compact_view },
         Field<&Prefs::filterbar_>{ TR_KEY_show_filterbar },
+        Field<&Prefs::menubar_>{ TR_KEY_show_menubar },
         Field<&Prefs::statusbar_>{ TR_KEY_show_statusbar },
         Field<&Prefs::statusbar_stats_>{ TR_KEY_statusbar_stats },
         Field<&Prefs::show_tracker_scrapes_>{ TR_KEY_show_tracker_scrapes },
@@ -367,7 +369,7 @@ private:
         int type;
     };
 
-    static auto constexpr Items = std::array<PrefItem, 97>{ {
+    static auto constexpr Items = std::array<PrefItem, 98>{ {
         { .key = TR_KEY_show_options_window, .type = QMetaType::Bool },
         { .key = TR_KEY_open_dialog_dir, .type = QMetaType::QString },
         { .key = TR_KEY_inhibit_desktop_hibernation, .type = QMetaType::Bool },
@@ -382,6 +384,7 @@ private:
         { .key = TR_KEY_sort_reversed, .type = QMetaType::Bool },
         { .key = TR_KEY_compact_view, .type = QMetaType::Bool },
         { .key = TR_KEY_show_filterbar, .type = QMetaType::Bool },
+        { .key = TR_KEY_show_menubar, .type = QMetaType::Bool },
         { .key = TR_KEY_show_statusbar, .type = QMetaType::Bool },
         { .key = TR_KEY_statusbar_stats, .type = UserMetaType::StatsModeType },
         { .key = TR_KEY_show_tracker_scrapes, .type = QMetaType::Bool },

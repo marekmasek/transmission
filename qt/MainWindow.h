@@ -27,6 +27,7 @@
 class QAction;
 class QIcon;
 class QMenu;
+class QToolButton;
 
 class AboutDialog;
 class AddData;
@@ -127,6 +128,7 @@ private:
 
     QMenu* createOptionsMenu();
     QMenu* createStatsModeMenu();
+    void initAppMenu();
     void initStatusBar();
 
     void clearSelection();
@@ -163,6 +165,10 @@ private:
     time_t last_read_time_ = {};
     QTimer network_timer_;
     bool network_error_ = {};
+    QAction* show_menubar_action_ = {};
+    QAction* app_menu_spacer_action_ = {};
+    QAction* app_menu_action_ = {};
+    QToolButton* app_menu_button_ = {};
     QAction* dlimit_off_action_ = {};
     QAction* dlimit_on_action_ = {};
     QAction* ulimit_off_action_ = {};
@@ -201,6 +207,7 @@ private:
     void refreshStatusBar(TransferStats const& stats);
     void refreshTitle();
     void refreshTorrentViewHeader();
-    void refreshToolbarIconSize();
+    void refreshControlSizes();
+    void refreshMenuBar();
     void refreshTrayIcon(TransferStats const& stats);
 };

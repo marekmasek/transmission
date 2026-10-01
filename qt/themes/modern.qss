@@ -17,7 +17,7 @@ QMenuBar {
 
 QMenuBar::item {
     background: transparent;
-    padding: @pad_s@px 10px;
+    padding: @menu_pad@px @menubar_pad_x@px;
     border-radius: @radius@px;
 }
 

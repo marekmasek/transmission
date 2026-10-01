@@ -530,6 +530,7 @@ QString makeStyleSheet()
         { "radius", QString::number(touch ? 10 : 7) },
         { "menu_pad", QString::number(touch ? 11 : 6) },
         { "menu_radius", QString::number(menu_radius) },
+        { "menubar_pad_x", QString::number(touch ? 16 : 10) },
         { "ind_round", QString::number((touch ? TouchIndicatorSize : 16) / 2) },
         { "ind_r", QString::number(touch ? 6 : 4) },
         { "ind", QString::number(touch ? TouchIndicatorSize : 16) },
