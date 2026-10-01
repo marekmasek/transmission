@@ -198,6 +198,13 @@ private:
     QStringList complete_sound_command_;
     bool complete_sound_enabled_ = true;
     bool read_clipboard_ = false;
+    bool single_instance_ = false;
+#ifdef _WIN32
+    QString ui_theme_ = QStringLiteral("modern");
+#else
+    QString ui_theme_ = QStringLiteral("native");
+#endif
+    bool ui_touch_mode_ = false;
     int alt_speed_limit_up_ = 0;
     int alt_speed_limit_down_ = 0;
     bool alt_speed_limit_enabled_ = false;
@@ -295,6 +302,9 @@ public:
         Field<&Prefs::complete_sound_command_>{ TR_KEY_torrent_complete_sound_command },
         Field<&Prefs::complete_sound_enabled_>{ TR_KEY_torrent_complete_sound_enabled },
         Field<&Prefs::read_clipboard_>{ TR_KEY_read_clipboard },
+        Field<&Prefs::single_instance_>{ TR_KEY_single_instance },
+        Field<&Prefs::ui_theme_>{ TR_KEY_ui_theme },
+        Field<&Prefs::ui_touch_mode_>{ TR_KEY_ui_touch_mode },
         Field<&Prefs::alt_speed_limit_up_>{ TR_KEY_alt_speed_up },
         Field<&Prefs::alt_speed_limit_down_>{ TR_KEY_alt_speed_down },
         Field<&Prefs::alt_speed_limit_enabled_>{ TR_KEY_alt_speed_enabled },
@@ -357,7 +367,7 @@ private:
         int type;
     };
 
-    static auto constexpr Items = std::array<PrefItem, 94>{ {
+    static auto constexpr Items = std::array<PrefItem, 97>{ {
         { .key = TR_KEY_show_options_window, .type = QMetaType::Bool },
         { .key = TR_KEY_open_dialog_dir, .type = QMetaType::QString },
         { .key = TR_KEY_inhibit_desktop_hibernation, .type = QMetaType::Bool },
@@ -398,6 +408,9 @@ private:
         { .key = TR_KEY_torrent_complete_sound_command, .type = QMetaType::QStringList },
         { .key = TR_KEY_torrent_complete_sound_enabled, .type = QMetaType::Bool },
         { .key = TR_KEY_read_clipboard, .type = QMetaType::Bool },
+        { .key = TR_KEY_single_instance, .type = QMetaType::Bool },
+        { .key = TR_KEY_ui_theme, .type = QMetaType::QString },
+        { .key = TR_KEY_ui_touch_mode, .type = QMetaType::Bool },
         { .key = TR_KEY_alt_speed_up, .type = QMetaType::Int },
         { .key = TR_KEY_alt_speed_down, .type = QMetaType::Int },
         { .key = TR_KEY_alt_speed_enabled, .type = QMetaType::Bool },

@@ -7,4 +7,14 @@
       <file alias="ratio.svg">../icons/yin-yang.svg</file>
       <file alias="transmission.svg">../icons/hicolor_apps_scalable_transmission.svg</file>
   </qresource>
+  <qresource prefix="/themes">
+      <file alias="modern.qss">themes/modern.qss</file>
+      <file alias="check.svg">themes/check.svg</file>
+      <file alias="check-accent.svg">themes/check-accent.svg</file>
+      <file alias="chevron-down.svg">themes/chevron-down.svg</file>
+      <file alias="chevron-up.svg">themes/chevron-up.svg</file>
+      <file alias="dash.svg">themes/dash.svg</file>
+      <file alias="dot.svg">themes/dot.svg</file>
+      <file alias="dot-accent.svg">themes/dot-accent.svg</file>
+  </qresource>
 </RCC>

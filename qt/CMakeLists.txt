@@ -88,6 +88,8 @@ target_sources(${TR_NAME}-qt-lib
         StatsDialog.h
         StyleHelper.cc
         StyleHelper.h
+        Theme.cc
+        Theme.h
         Torrent.cc
         Torrent.h
         TorrentDelegate.cc
@@ -216,6 +218,12 @@ target_link_libraries(${TR_NAME}-qt-lib
         ${TR_NAME}-app
         ${TR_NAME}
         transmission::qt_impl)
+
+if(WIN32)
+    target_link_libraries(${TR_NAME}-qt-lib
+        PRIVATE
+            dwmapi)
+endif()
 
 target_compile_definitions(${TR_NAME}-qt-lib
     PRIVATE

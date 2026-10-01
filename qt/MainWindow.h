@@ -31,7 +31,6 @@ class QMenu;
 class AboutDialog;
 class AddData;
 class DetailsDialog;
-class ListViewProxyStyle;
 class Prefs;
 class PrefsDialog;
 class Session;
@@ -142,8 +141,6 @@ private:
     Prefs& prefs_;
     TorrentModel& model_;
 
-    std::shared_ptr<ListViewProxyStyle> lvp_style_;
-
     QPixmap pixmap_network_error_;
     QPixmap pixmap_network_idle_;
     QPixmap pixmap_network_receive_;
@@ -204,5 +201,6 @@ private:
     void refreshStatusBar(TransferStats const& stats);
     void refreshTitle();
     void refreshTorrentViewHeader();
+    void refreshToolbarIconSize();
     void refreshTrayIcon(TransferStats const& stats);
 };

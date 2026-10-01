@@ -64,6 +64,8 @@ TorrentView::TorrentView(QWidget* parent)
     : QListView{ parent }
     , header_widget_{ new HeaderWidget{ this } }
 {
+    // lets delegates highlight the row under the pointer
+    viewport()->setAttribute(Qt::WA_Hover);
 }
 
 void TorrentView::setHeaderText(QString const& text)

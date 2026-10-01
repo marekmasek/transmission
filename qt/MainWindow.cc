@@ -16,7 +16,6 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPainter>
-#include <QProxyStyle>
 #include <QtGui>
 
 #include <libtransmission/transmission.h>
@@ -55,34 +54,10 @@ char const* const SortModeKey = "sort-mode";
 
 } // namespace
 
-/**
- * This is a proxy-style for that forces it to be always disabled.
- * We use this to make our torrent list view behave consistently on
- * both GTK and Qt implementations.
- */
-class ListViewProxyStyle : public QProxyStyle
-{
-public:
-    int styleHint(
-        StyleHint hint,
-        QStyleOption const* option = nullptr,
-        QWidget const* widget = nullptr,
-        QStyleHintReturn* return_data = nullptr) const override
-    {
-        if (hint == QStyle::SH_ItemView_ActivateItemOnSingleClick)
-        {
-            return 0;
-        }
-
-        return QProxyStyle::styleHint(hint, option, widget, return_data);
-    }
-};
-
 MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool minimized)
     : session_{ session }
     , prefs_{ prefs }
     , model_{ model }
-    , lvp_style_{ std::make_shared<ListViewProxyStyle>() }
     , filter_model_{ prefs }
     , torrent_delegate_{ new TorrentDelegate{ this } }
     , torrent_delegate_min_{ new TorrentDelegateMin{ this } }
@@ -95,8 +70,8 @@ MainWindow::MainWindow(Session& session, Prefs& prefs, TorrentModel& model, bool
     qApp->setAttribute(Qt::ApplicationAttribute::AA_DontShowIconsInMenus, false);
 
     ui_.setupUi(this);
+    refreshToolbarIconSize();
 
-    ui_.listView->setStyle(lvp_style_.get());
     ui_.listView->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     // ui signals
@@ -1633,11 +1608,24 @@ bool MainWindow::event(QEvent* e)
         refreshSoon(RefreshIcon);
         break;
 
+    case QEvent::StyleChange:
+        refreshToolbarIconSize();
+        break;
+
     default:
         break;
     }
 
     return QMainWindow::event(e);
+}
+
+// the .ui file pins the icon size, so follow the theme's metric by hand
+void MainWindow::refreshToolbarIconSize()
+{
+    if (auto const size = style()->pixelMetric(QStyle::PM_ToolBarIconSize, nullptr, ui_.toolBar); size > 0)
+    {
+        ui_.toolBar->setIconSize({ size, size });
+    }
 }
 
 /***

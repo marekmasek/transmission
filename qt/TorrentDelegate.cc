@@ -17,6 +17,7 @@
 
 #include "Formatter.h"
 #include "StyleHelper.h"
+#include "Theme.h"
 #include "Torrent.h"
 #include "TorrentDelegate.h"
 #include "TorrentModel.h"
@@ -150,7 +151,85 @@ QSize TorrentDelegate::margin(QStyle const& style) const
 {
     Q_UNUSED(style)
 
-    return { 4, 4 };
+    if (Theme::isModern())
+    {
+        // room for the card drawn by Theme::drawItemCard() plus its padding
+        return Theme::isTouch() ? QSize{ 22, 17 } : QSize{ 19, 13 };
+    }
+
+    return Theme::isTouch() ? QSize{ 8, 10 } : QSize{ 4, 4 };
+}
+
+void TorrentDelegate::drawBackground(QPainter* painter, QStyleOptionViewItem const& option) const
+{
+    if (Theme::isModern())
+    {
+        Theme::drawItemCard(*painter, option);
+        return;
+    }
+
+    if ((option.state & QStyle::State_Selected) == 0)
+    {
+        return;
+    }
+
+    auto color_group = (option.state & QStyle::State_Enabled) != 0 ? QPalette::Normal : QPalette::Disabled;
+
+    if (color_group == QPalette::Normal && (option.state & QStyle::State_Active) == 0)
+    {
+        color_group = QPalette::Inactive;
+    }
+
+    painter->fillRect(option.rect, option.palette.brush(color_group, QPalette::Highlight));
+}
+
+QColor TorrentDelegate::textColor(QStyleOptionViewItem const& option, Torrent const& tor)
+{
+    bool const is_item_selected = (option.state & QStyle::State_Selected) != 0;
+
+    if (tor.hasError() && !is_item_selected)
+    {
+        return Theme::isModern() ? Theme::errorColor() : QColor{ Qt::GlobalColor::red };
+    }
+
+    auto const color_group = (option.state & QStyle::State_Active) != 0 ? QPalette::Normal : QPalette::Inactive;
+    auto const color_role = is_item_selected ? QPalette::HighlightedText : QPalette::Text;
+    return option.palette.color(color_group, color_role);
+}
+
+void TorrentDelegate::setProgressBarColors(Torrent const& tor, bool const is_item_selected) const
+{
+    auto& palette = progress_bar_style_.palette;
+
+    if (Theme::isModern())
+    {
+        auto const bar = tor.isDownloading() ? Theme::Bar::Downloading :
+            tor.isSeeding()                  ? Theme::Bar::Seeding :
+                                               Theme::Bar::Idle;
+        palette.setBrush(QPalette::Highlight, Theme::progressBrush(bar, is_item_selected));
+        palette.setColor(QPalette::Base, Theme::progressTrack(is_item_selected));
+        palette.setColor(QPalette::Window, Theme::progressTrack(is_item_selected));
+        return;
+    }
+
+    if (tor.isDownloading())
+    {
+        palette.setBrush(QPalette::Highlight, BlueBrush);
+        palette.setColor(QPalette::Base, BlueBack);
+        palette.setColor(QPalette::Window, BlueBack);
+    }
+    else if (tor.isSeeding())
+    {
+        palette.setBrush(QPalette::Highlight, GreenBrush);
+        palette.setColor(QPalette::Base, GreenBack);
+        palette.setColor(QPalette::Window, GreenBack);
+    }
+    else
+    {
+        palette.setBrush(QPalette::Highlight, SilverBrush);
+        palette.setColor(QPalette::Base, SilverBack);
+        palette.setColor(QPalette::Window, SilverBack);
+    }
 }
 
 QString TorrentDelegate::progressString(Torrent const& tor)
@@ -422,10 +501,11 @@ QSize TorrentDelegate::sizeHint(QStyleOptionViewItem const& option, Torrent cons
 
 QSize TorrentDelegate::sizeHint(QStyleOptionViewItem const& option, QModelIndex const& index) const
 {
-    // if the font changed, invalidate the height cache
-    if (height_font_ != option.font)
+    // if the font or theme changed, invalidate the height cache
+    if (height_font_ != option.font || height_theme_generation_ != Theme::generation())
     {
         height_font_ = option.font;
+        height_theme_generation_ = Theme::generation();
         height_hint_.reset();
     }
 
@@ -478,21 +558,10 @@ void TorrentDelegate::drawTorrent(QPainter* painter, QStyleOptionViewItem const&
 
     bool const is_item_selected((option.state & QStyle::State_Selected) != 0);
     bool const is_item_enabled((option.state & QStyle::State_Enabled) != 0);
-    bool const is_item_active((option.state & QStyle::State_Active) != 0);
 
     painter->save();
 
-    if (is_item_selected)
-    {
-        QPalette::ColorGroup cg = is_item_enabled ? QPalette::Normal : QPalette::Disabled;
-
-        if (cg == QPalette::Normal && !is_item_active)
-        {
-            cg = QPalette::Inactive;
-        }
-
-        painter->fillRect(option.rect, option.palette.brush(cg, QPalette::Highlight));
-    }
+    drawBackground(painter, option);
 
     auto icon_mode = QIcon::Mode{};
 
@@ -510,11 +579,7 @@ void TorrentDelegate::drawTorrent(QPainter* painter, QStyleOptionViewItem const&
     }
 
     auto const icon_state = is_paused ? QIcon::Off : QIcon::On;
-    auto const color_group = is_item_active ? QPalette::Normal : QPalette::Inactive;
-    auto const color_role = is_item_selected ? QPalette::HighlightedText : QPalette::Text;
-
-    auto text_color = (tor.hasError() && !is_item_selected) ? QColor{ Qt::GlobalColor::red } :
-                                                              option.palette.color(color_group, color_role);
+    auto text_color = textColor(option, tor);
     if (is_paused || !is_item_enabled)
     {
         text_color.setAlphaF(0.5);
@@ -556,24 +621,7 @@ void TorrentDelegate::drawTorrent(QPainter* painter, QStyleOptionViewItem const&
     painter->drawText(layout.progress_rect, Qt::AlignLeft | Qt::AlignVCenter, layout.progressText());
     progress_bar_style_.rect = layout.bar_rect;
 
-    if (tor.isDownloading())
-    {
-        progress_bar_style_.palette.setBrush(QPalette::Highlight, BlueBrush);
-        progress_bar_style_.palette.setColor(QPalette::Base, BlueBack);
-        progress_bar_style_.palette.setColor(QPalette::Window, BlueBack);
-    }
-    else if (tor.isSeeding())
-    {
-        progress_bar_style_.palette.setBrush(QPalette::Highlight, GreenBrush);
-        progress_bar_style_.palette.setColor(QPalette::Base, GreenBack);
-        progress_bar_style_.palette.setColor(QPalette::Window, GreenBack);
-    }
-    else
-    {
-        progress_bar_style_.palette.setBrush(QPalette::Highlight, SilverBrush);
-        progress_bar_style_.palette.setColor(QPalette::Base, SilverBack);
-        progress_bar_style_.palette.setColor(QPalette::Window, SilverBack);
-    }
+    setProgressBarColors(tor, is_item_selected);
 
     progress_bar_style_.state = progress_bar_state;
     setProgressBarPercentDone(option, tor);
